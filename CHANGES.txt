@@ -1,2 +1,5 @@
+22 September 2023
+    Completed installation and running outside
+
 08 September 2023
     Started making scipion-em-reweighting from template

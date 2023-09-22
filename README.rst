@@ -4,6 +4,9 @@ Scipion Ensemble Reweighting plugin
 
 This is an Ensemble Reweighting plugin for **scipion**
 
+This installs and runs the Ensemble Reweighting method described at
+https://pubs.acs.org/doi/abs/10.1021/acs.jpcb.3c01087 and forked from
+https://github.com/flatironinstitute/Ensemble-reweighting-using-Cryo-EM-particles
 
 **Install the plugin in devel mode**
 
@@ -17,18 +20,3 @@ If installation fails, you can access pip options like:
 
     scipion3 python -m pip ... (list, install, uninstall)
     
-
-**Customize it**
-
-Replace icon.png with your logo and update the bibtex.py with your reference.
-
-Get rid of this content and keep the readme informative
-
-
-**Repository**
-
-To create the repository, following those guide depending the platform:
-
-- GitHub: https://docs.github.com/en/get-started/quickstart/create-a-repo
-- GitLab https://docs.gitlab.com/ee/user/project/repository/
-- Bitbucket https://support.atlassian.com/bitbucket-cloud/docs/create-a-git-repository/
