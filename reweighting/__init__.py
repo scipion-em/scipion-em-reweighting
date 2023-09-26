@@ -25,35 +25,25 @@
 # **************************************************************************
 
 import pwem
-import reweighting
-from reweighting.constants import *
 import os
 import pyworkflow.utils as pwutils
+from pyworkflow import Config
 from scipion.install.funcs import VOID_TGZ
+
+from reweighting.constants import *
 
 _logo = "icon.png"
 _references = ['ensReweighting']
-
-# Use this variable to activate an environment from the Scipion conda
-MODEL_CRYOER_ENV_ACTIVATION_VAR = "MODEL_CRYOER_ENV_ACTIVATION"
-# Use this general activation variable when installed outside Scipion
-MODEL_CRYOER_ACTIVATION_VAR = "MODEL_CRYOER_ACTIVATION"
-
 __version__ = "3.0.1"
 
 
 class Plugin(pwem.Plugin):
-    _homeVar = CRYOER_HOME
-    _pathVars = [CRYOER_HOME]
-    # We only support our latest release, we can't afford supporting previous releases
-    _supportedVersions = [__version__]
-    _url = CRYOER_URL
+    _supportedVersions = VERSIONS
+    _url = REWEIGHTING_URL
 
     @classmethod
     def _defineVariables(cls):
-        cls._defineVar(MODEL_CRYOER_ACTIVATION_VAR, '')
-        cls._defineEmVar(CRYOER_HOME, 'reweighting-0.0.1/CryoER')
-        cls._defineVar(MODEL_CRYOER_ENV_ACTIVATION_VAR, cls.getActivationCmd(__version__))
+        cls._defineVar(REWEIGHTING_ENV_ACTIVATION, DEFAULT_ACTIVATION_CMD)
 
     @classmethod
     def getEnviron(cls):
@@ -61,18 +51,21 @@ class Plugin(pwem.Plugin):
         return environ
 
     @classmethod
-    def getCRYOERCmd(cls, args):
-        cmd = cls.getVar(MODEL_CRYOER_ACTIVATION_VAR)
-        if not cmd:
-            cmd = cls.getCondaActivationCmd()
-            cmd += cls.getVar(MODEL_CRYOER_ENV_ACTIVATION_VAR)
-        cmd += " && "
+    def getReweightingCmd(cls, args):
+        cmd = '%s %s && ' % (cls.getCondaActivationCmd(), cls.getReweightingEnvActivation())
         cmd += args
         return cmd
 
     @classmethod
-    def getActivationCmd(cls, version):
-        return 'conda activate {}'.format(cls.getVar(CRYOER_HOME))
+    def getActivationCmd(cls):
+        """ Return the activation command. """
+        return '%s %s' % (cls.getCondaActivationCmd(),
+                          cls.getReweightingEnvActivation())
+    
+    @classmethod
+    def getReweightingEnvActivation(cls):
+        """ Activate the conda environment. """
+        return cls.getVar(REWEIGHTING_ENV_ACTIVATION)
 
     @classmethod
     def isVersionActive(cls):
@@ -80,10 +73,34 @@ class Plugin(pwem.Plugin):
 
     @classmethod
     def defineBinaries(cls, env):
-        def getCondaInstallationCryoER():
+        for ver in VERSIONS:
+            cls.addReweightingPackage(env, ver,
+                                      default=ver == REWEIGHTING_DEFAULT_VER_NUM)
+
+    @classmethod
+    def addReweightingPackage(cls, env, version, default=False):
+
+        def getCondaInstallationReweighting():
+            ENV_NAME = getReweightingEnvName(version)
             installationCmd = cls.getCondaActivationCmd()
-            installationCmd += 'conda env remove -n reweighting && conda env create -n reweighting -f ' + CONDA_YML + " && "
-            installationCmd += "conda activate reweighting && "
+            installationCmd += f" conda env create -n {ENV_NAME} -f {CONDA_YML} --force && "
+            installationCmd += f"conda activate {ENV_NAME} && "
+
+            clonePath = os.path.join(pwem.Config.EM_ROOT, "Reweighting")
+            if not os.path.exists(clonePath):
+                installationCmd += "git clone -b jmk_improvements https://github.com/jamesmkrieger/Ensemble-reweighting-using-Cryo-EM-particles.git Reweighting && "
+
+            installationCmd += "cd Reweighting && "
+            installationCmd += "pip install -Ue . && cd .. && "
+            installationCmd += "python -c 'import cmdstanpy; cmdstanpy.install_cmdstan()' && "
+
+            installationCmd += "touch reweighting_installed"
+            return installationCmd
+
+        def getCondaInstallationTorchSVD():
+            ENV_NAME = getReweightingEnvName(version)
+            installationCmd = cls.getCondaActivationCmd()
+            installationCmd += f"conda activate {ENV_NAME} && "
 
             clonePath = os.path.join(pwem.Config.EM_ROOT, "torch-batch-svd")
             if not os.path.exists(clonePath):
@@ -91,23 +108,16 @@ class Plugin(pwem.Plugin):
             installationCmd += "cd torch-batch-svd && "
             installationCmd += "pip install -Ue . && cd .. && "
 
-            clonePath = os.path.join(pwem.Config.EM_ROOT, "CryoER")
-            if not os.path.exists(clonePath):
-                installationCmd += "git clone -b jmk_improvements https://github.com/jamesmkrieger/Ensemble-reweighting-using-Cryo-EM-particles.git CryoER && "
-            installationCmd += "cd CryoER && "
-            installationCmd += "pip install -Ue . && cd .. && "
-
-            installationCmd += "python -c 'import cmdstanpy; cmdstanpy.install_cmdstan()' && "
-            
-            installationCmd += "touch reweighting_installed"
-
+            installationCmd += "touch flexutils_torch_svd_installed"
             return installationCmd
 
         commands = []
-        installationEnv = getCondaInstallationCryoER()
+        installationEnv = getCondaInstallationReweighting()
+        installationTorchSVD = getCondaInstallationTorchSVD()
         commands.append((installationEnv, ["reweighting_installed"]))
+        commands.append((installationTorchSVD, ["flexutils_torch_svd_installed"]))
 
-        env.addPackage('reweighting', version='0.0.1',
+        env.addPackage('reweighting', version=version,
                        commands=commands,
                        tar="void.tgz",
                        default=True)

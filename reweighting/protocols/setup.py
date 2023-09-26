@@ -13,8 +13,6 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
-from reweighting import __version__
-
 # Get the long description from the README file
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
@@ -27,7 +25,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='scipion-em-reweighting',  # Required
-    version=__version__,  # Required
+    version='0.1',  # Required
     description='Scipion plugin for ensemble reweighting.',  # Required
     long_description=long_description,  # Optional
     url='https://github.com/scipion-em/scipion-em-reweighting',  # Optional

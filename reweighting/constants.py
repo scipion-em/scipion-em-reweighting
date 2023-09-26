@@ -28,7 +28,19 @@
 import os
 import reweighting
 
-CRYOER_HOME = 'CRYOER_HOME'
-CRYOER_URL = 'https://github.com/scipion-em/scipion-em-CRYOER'
+REWEIGHTING_HOME = 'REWEIGHTING_HOME'
+REWEIGHTING_URL = 'https://github.com/scipion-em/scipion-em-reweighting'
 
 CONDA_YML = os.path.join(reweighting.__path__[0], 'conda.yaml')
+
+def getReweightingEnvName(version):
+    return "reweighting-%s" % version
+
+V0_0_1 = "0.0.1"
+
+VERSIONS = [V0_0_1]
+REWEIGHTING_DEFAULT_VER_NUM = V0_0_1
+
+DEFAULT_ENV_NAME = getReweightingEnvName(REWEIGHTING_DEFAULT_VER_NUM)
+DEFAULT_ACTIVATION_CMD = 'conda activate ' + DEFAULT_ENV_NAME
+REWEIGHTING_ENV_ACTIVATION = 'REWEIGHTING_ENV_ACTIVATION'
