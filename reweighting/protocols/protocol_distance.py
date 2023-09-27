@@ -211,10 +211,7 @@ class ReweightingImageDistancesProtocol(EMProtocol):
 
         matricesFilename = self._getExtraPath('rot_mats_struc_image.npy')
 
-        if self.device.get() == self.CPU:
-            device = "cpu"
-        else:
-            device = "cuda"
+        device = "cpu" if self.device.get() == self.CPU else "cuda"
 
         params = (topImageFile, trajImageFile, 
                   topStructFile, trajStructFile,
@@ -224,7 +221,7 @@ class ReweightingImageDistancesProtocol(EMProtocol):
                   self.nBatch.get(), device)
         
         command = """python3 -m tools.calc_rot_mats --top_image {0} --traj_image {1} \
-            --top_struc {2} --traj_struc {3} --outdir {5} --n_batch 5""".format(*params)
+            --top_struc {2} --traj_struc {3} --outdir {5} --n_batch {10}""".format(*params)
         command = reweighting.Plugin.getReweightingCmd(command)
         check_call(command, shell=True, stdout=sys.stdout, stderr=sys.stderr, env=None, cwd=None)
 
