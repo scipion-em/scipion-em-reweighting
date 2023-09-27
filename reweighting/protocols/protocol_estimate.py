@@ -29,6 +29,7 @@
 """
 This module will estimate weights using MCMC
 """
+from multiprocessing import cpu_count
 import os
 
 from pwem.protocols import EMProtocol
@@ -59,6 +60,8 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
             form: this is the form to be populated with sections and params.
         """
         # You need a params to belong to a section:
+        form.addParallelSection(threads=1, mpi=0)
+
         form.addSection(label='Inputs')
 
         form.addParam('infileClusterSizeData', params.EnumParam, choices=['file', 'pointer'],
@@ -172,6 +175,13 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
             --chains {3} \
             --iterwarmup {4} \
             --itersample {5}""".format(*params)
+        
+        parallelChains = self.parallelchain.get()
+        threadsPerChain = self.threadsperchain.get()
+        if parallelChains > 1 or threadsPerChain > 1:
+            command += " --parallelchain {0} --threadsperchain {1}".format(parallelChains, 
+                                                                           threadsPerChain)
+
 
         command = reweighting.Plugin.getReweightingCmd(command)
         check_call(command, shell=True, stdout=sys.stdout, stderr=sys.stderr, env=None, cwd=None)
