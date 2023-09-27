@@ -243,8 +243,18 @@ class ReweightingImageDistancesProtocol(EMProtocol):
     def createOutputStep(self):
         # register output files
         self.args = {}
-        for i, filename in enumerate(os.listdir(self._getExtraPath())):
-            self.args["File" + str(i+1)] = EMFile(filename=filename)
+        filelist = sorted(os.listdir(self._getExtraPath()))[:-1] # exclude rot_mats_struc_image.npy
+
+        oldStart = ''
+        for filename in filelist:
+
+            start = filename.split('_')[0]
+            if start != oldStart:
+                oldStart = start
+                i = 0
+
+            self.args[start + "_file_" + str(i+1)] = EMFile(filename=filename)
+            i += 1
 
         self._defineOutputs(**self.args)
 
