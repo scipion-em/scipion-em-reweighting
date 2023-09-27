@@ -253,7 +253,7 @@ class ReweightingImageDistancesProtocol(EMProtocol):
                 oldStart = start
                 i = 0
 
-            self.args[start + "_file_" + str(i+1)] = EMFile(filename=filename)
+            self.args[start + "_file_" + str(i+1)] = EMFile(filename=self._getExtraPath(filename))
             i += 1
 
         self._defineOutputs(**self.args)
