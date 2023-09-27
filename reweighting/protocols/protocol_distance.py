@@ -55,6 +55,9 @@ class ReweightingImageDistancesProtocol(EMProtocol):
     USE_ATOMSTRUCT = 1
     USE_MDSYSTEM = 2
 
+    CUDA = 0
+    CPU = 1
+
     # -------------------------- DEFINE param functions ----------------------
     def _defineParams(self, form):
         """ Define the input parameters that will be used.
@@ -62,7 +65,7 @@ class ReweightingImageDistancesProtocol(EMProtocol):
             form: this is the form to be populated with sections and params.
         """
         # You need a params to belong to a section:
-        form.addSection(label='Simulated images and structures')
+        form.addSection(label='Input structures')
 
         form.addParam('topImageDataType', params.EnumParam, choices=['file', 'atomstruct', 'mdsystem'],
                       label="Import images topology from",
@@ -124,6 +127,49 @@ class ReweightingImageDistancesProtocol(EMProtocol):
                       pointerClass='AtomStruct, SetOfTrajFrames',
                       help='The structures trajectory can currently be provided as an AtomStruct, MDSystem or SetOfTrajFrames')
 
+        form.addParam('device', params.EnumParam, choices=['cuda', 'cpu'],
+                      label="hardware device",
+                      default=self.CPU,
+                      expertLevel=params.LEVEL_ADVANCED,
+                      display=params.EnumParam.DISPLAY_HLIST,
+                      help='hardware device for calculation: "cuda" for GPU, or "cpu" for CPU')
+
+        form.addParam('nBatch', params.IntParam, default=10,
+                      label="Number of batches",
+                      expertLevel=params.LEVEL_ADVANCED,
+                      help='number of batches to separate the output files into '
+                           'for memory management')
+
+
+        form.addSection(label='Simulated image parameters')
+
+        form.addParam('nPixel', params.IntParam, default=128,
+                      label="Number of pixels",
+                      expertLevel=params.LEVEL_ADVANCED,
+                      help='number of image pixels, use power of 2 for CTF purpose')
+
+        form.addParam('pixelSize', params.FloatParam, default=1.,
+                      label="Pixel size in Angstrom",
+                      expertLevel=params.LEVEL_ADVANCED,
+                      help='Pixel size in Angstrom')
+        
+        form.addParam('sigma', params.FloatParam, default=1.5,
+                      label="radius of Gaussian atom",
+                      expertLevel=params.LEVEL_ADVANCED,
+                      help='radius of Gaussian for atoms')
+        
+        form.addParam('snr', params.FloatParam, default=1e-2,
+                      label="signal-to-noise ratio",
+                      expertLevel=params.LEVEL_ADVANCED,
+                      help='signal-to-noise ratio')
+        
+        form.addParam('ctfBool', params.BooleanParam, default=False,
+                      label="introduce CTF modulation?",
+                      expertLevel=params.LEVEL_ADVANCED,
+                      help='whether to introduce CTF modulation')
+        
+
+        
     # --------------------------- STEPS functions ------------------------------
     def _insertAllSteps(self):
         # Insert processing steps
@@ -165,9 +211,17 @@ class ReweightingImageDistancesProtocol(EMProtocol):
 
         matricesFilename = self._getExtraPath('rot_mats_struc_image.npy')
 
+        if self.device.get() == self.CPU:
+            device = "cpu"
+        else:
+            device = "cuda"
+
         params = (topImageFile, trajImageFile, 
                   topStructFile, trajStructFile,
-                  matricesFilename, self._getExtraPath())
+                  matricesFilename, self._getExtraPath(),
+                  self.nPixel.get(), self.pixelSize.get(),
+                  self.sigma.get(), self.snr.get(),
+                  self.nBatch.get(), device)
         
         command = """python3 -m tools.calc_rot_mats --top_image {0} --traj_image {1} \
             --top_struc {2} --traj_struc {3} --outdir {5} --n_batch 5""".format(*params)
@@ -177,12 +231,15 @@ class ReweightingImageDistancesProtocol(EMProtocol):
         command = """python3 -m cryoER.calc_image_struc_distance --top_image {0} --traj_image {1} \
             --top_struc {2} --traj_struc {3} --rotmat_struc_imgstruc {4} \
             --outdir {5} \
-            --n_pixel 128 \
-            --pixel_size 0.2 \
-            --sigma 1.5 \
-            --signal_to_noise_ratio 1e-2 \
-            --add_ctf \
-            --n_batch 1""".format(*params)
+            --n_pixel {6} \
+            --pixel_size {7} \
+            --sigma {8} \
+            --signal_to_noise_ratio {9} \
+            --n_batch {10} --device {11}""".format(*params)
+        
+        if self.ctfBool.get():
+            command += " --ctf"
+
         command = reweighting.Plugin.getReweightingCmd(command)
         check_call(command, shell=True, stdout=sys.stdout, stderr=sys.stderr, env=None, cwd=None)
 
