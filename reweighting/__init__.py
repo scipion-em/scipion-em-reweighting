@@ -88,7 +88,7 @@ class Plugin(pwem.Plugin):
 
             clonePath = os.path.join(pwem.Config.EM_ROOT, "Reweighting")
             if not os.path.exists(clonePath):
-                installationCmd += "git clone -b main https://github.com/jamesmkrieger/Ensemble-reweighting-using-Cryo-EM-particles.git Reweighting && "
+                installationCmd += "git clone -b scipion https://github.com/jamesmkrieger/Ensemble-reweighting-using-Cryo-EM-particles.git Reweighting && "
 
             installationCmd += "cd Reweighting && "
             installationCmd += "pip install -Ue . && cd .. && "
