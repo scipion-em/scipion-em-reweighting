@@ -88,7 +88,7 @@ class Plugin(pwem.Plugin):
 
             clonePath = os.path.join(pwem.Config.EM_ROOT, "Reweighting")
             if not os.path.exists(clonePath):
-                installationCmd += "git clone -b jmk_improvements https://github.com/jamesmkrieger/Ensemble-reweighting-using-Cryo-EM-particles.git Reweighting && "
+                installationCmd += "git clone -b main https://github.com/jamesmkrieger/Ensemble-reweighting-using-Cryo-EM-particles.git Reweighting && "
 
             installationCmd += "cd Reweighting && "
             installationCmd += "pip install -Ue . && cd .. && "
@@ -108,14 +108,14 @@ class Plugin(pwem.Plugin):
             installationCmd += "cd torch-batch-svd && "
             installationCmd += "pip install -Ue . && cd .. && "
 
-            installationCmd += "touch flexutils_torch_svd_installed"
+            installationCmd += "touch reweighting_torch_svd_installed"
             return installationCmd
 
         commands = []
         installationEnv = getCondaInstallationReweighting()
         installationTorchSVD = getCondaInstallationTorchSVD()
         commands.append((installationEnv, ["reweighting_installed"]))
-        commands.append((installationTorchSVD, ["flexutils_torch_svd_installed"]))
+        commands.append((installationTorchSVD, ["reweighting_torch_svd_installed"]))
 
         env.addPackage('reweighting', version=version,
                        commands=commands,

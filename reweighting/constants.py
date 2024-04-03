@@ -44,3 +44,9 @@ REWEIGHTING_DEFAULT_VER_NUM = V0_0_1
 DEFAULT_ENV_NAME = getReweightingEnvName(REWEIGHTING_DEFAULT_VER_NUM)
 DEFAULT_ACTIVATION_CMD = 'conda activate ' + DEFAULT_ENV_NAME
 REWEIGHTING_ENV_ACTIVATION = 'REWEIGHTING_ENV_ACTIVATION'
+
+REWEIGHTING_SCRIPTS = os.path.join(os.path.dirname(reweighting.__file__), 
+                                   "protocols", "scripts")
+
+REWEIGHTING_MEAN = "_reweightingMean"
+REWEIGHTING_STD = "_reweightingStd"
