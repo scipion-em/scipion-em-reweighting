@@ -29,20 +29,16 @@
 """
 This module will estimate weights using MCMC
 """
-from multiprocessing import cpu_count
+import numpy as np
 import os
 
 from pwem.protocols import EMProtocol
-from pyworkflow.protocol import params, Integer
-
-from pwem.objects import SetOfAtomStructs, EMFile
-from prody2.objects import SetOfTrajFrames
-from pwchem.objects import MDSystem
+from pwem.objects import EMSet, EMObject, EMFile, Float
+from pyworkflow.protocol import params
 
 import reweighting
-
-from subprocess import check_call
-import sys
+from reweighting.constants import (REWEIGHTING_SCRIPTS, 
+                                   REWEIGHTING_MEAN, REWEIGHTING_STD)
 
 class ReweightingEstimateWeightsProtocol(EMProtocol):
     """
@@ -66,7 +62,7 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
 
         form.addParam('infileClusterSizeData', params.EnumParam, choices=['file', 'pointer'],
                       label="Import initial cluster sizes from",
-                      default=self.IMPORT_FROM_FILES,
+                      default=self.USE_POINTER,
                       display=params.EnumParam.DISPLAY_HLIST,
                       help='Import cluster sizes from local file or Scipion object')
         form.addParam('clusterSizeFile', params.PathParam, label="File path",
@@ -80,8 +76,8 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
                       help='The input structures can be any set that contains sizes')
         
         form.addParam('infileImageDistanceData', params.EnumParam, choices=['file', 'pointer'],
-                      label="Import initial cluster sizes from",
-                      default=self.IMPORT_FROM_FILES,
+                      label="Import log likelihood or distances from",
+                      default=self.USE_POINTER,
                       display=params.EnumParam.DISPLAY_HLIST,
                       help='Import cluster sizes from local file or Scipion object')
 
@@ -112,10 +108,10 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
                            "NOTE: wildcards and special characters" 
                            "('*', '?', '#', ':', '%') cannot appear in the actual path.\n\n")
 
-        form.addParam('imageDistancePointer', params.MultiPointerParam, 
-                      label="Image distance objects(s)",
+        form.addParam('imageDistancePointers', params.MultiPointerParam, 
+                      label="Image distance object(s)",
                       condition='infileImageDistanceData == USE_POINTER',
-                      pointerClass='EMFile',
+                      pointerClass='EMFile,SetOfParticles',
                       help='This can be the output from a distance calculation job')
         
         form.addParam('chains', params.IntParam, default=4,
@@ -143,6 +139,11 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
                       expertLevel=params.LEVEL_ADVANCED,
                       help='(for parallelization) number of threads per chain for MCMC')
 
+        form.addParam('lambda_', params.FloatParam, default=-1,
+                      label="Noise standard deviation lambda",
+                      expertLevel=params.LEVEL_ADVANCED,
+                      help='Leave it as -1 if using logLikelihood to not normalise with lambda again')  
+
     # --------------------------- STEPS functions ------------------------------
     def _insertAllSteps(self):
         # Insert processing steps
@@ -154,47 +155,98 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
         if self.infileClusterSizeData.get() == self.IMPORT_FROM_FILES:
             infileclustersize = self.clusterSizeFile.get()
         else:
-            infileclustersize = self.clusterSizePointer.get().getFileName()
+            clusterSizeObject = self.clusterSizePointer.get()
+            if hasattr(clusterSizeObject.getFirstItem(), '_weights'):
+                self.clusterSizes = [item._weights.get() for item in clusterSizeObject]
+            elif hasattr(clusterSizeObject.getFirstItem(), '_prodyWeights'):
+                self.clusterSizes = [item._prodyWeights.get() for item in clusterSizeObject]
+            else:
+                self.clusterSizes = np.ones(len(clusterSizeObject))
+
+            if isinstance(self.clusterSizes, list):
+                self.clusterSizes = np.array(self.clusterSizes)
+
+            if self.clusterSizes.sum() != 1:
+                self.clusterSizes /= self.clusterSizes.sum()
+
+            infileclustersize = self._getExtraPath('cluster_sizes.txt')
+            np.savetxt(infileclustersize, self.clusterSizes)
 
         if self.infileImageDistanceData.get() == self.IMPORT_FROM_FILES:
             infileimagedistance = self.getMatchFiles()
         else:
-            infileimagedistance = [pointer.get().getFileName() 
-                                   for pointer in self.imageDistancePointer]
+            infileimagedistance = []
+            for i, pointer in enumerate(self.imageDistancePointers):
+                distanceObject = pointer.get()
+                if isinstance(distanceObject, EMFile):
+                    filename = distanceObject.getFileName()
+                else:
+                    if hasattr(distanceObject[1], '_xmipp_logLikelihood'):
+                        imageDistances = np.array([particle._xmipp_logLikelihood.get() for particle in distanceObject])
+                        imageDistances = imageDistances.reshape((len(self.clusterSizes),-1))
+                        filename = self._getExtraPath('image_distances_{0}.npy'.format(i+1))
+                        np.save(filename, imageDistances)
+
+                infileimagedistance.append(filename)
             
         infileimagedistance = " ".join(infileimagedistance)
 
         params = (infileclustersize, infileimagedistance, 
                   self._getExtraPath(),
                   self.chains.get(), self.iterwarmup.get(),
-                  self.itersample.get())
+                  self.itersample.get(), self.lambda_.get())
 
-        command = """python3 -m cryoER.run_cryoER_mcmc \
-            --infileclustersize {0} \
-            --infileimagedistance {1} --outdir {2} \
-            --chains {3} \
-            --iterwarmup {4} \
-            --itersample {5}""".format(*params)
+        command = "python3 -m cryoER.run_cryoER_mcmc"
+        args = """--infileclustersize {0} --infileimagedistance {1} --outdir \
+{2} --chains {3} --iterwarmup {4} --itersample {5}""".format(*params)
         
         parallelChains = self.parallelchain.get()
         threadsPerChain = self.threadsperchain.get()
         if parallelChains > 1 or threadsPerChain > 1:
-            command += " --parallelchain {0} --threadsperchain {1}".format(parallelChains, 
-                                                                           threadsPerChain)
+            args += " --parallelchain {0} --threadsperchain {1}".format(parallelChains, 
+                                                                        threadsPerChain)
 
+        self.runJob(reweighting.Plugin.getReweightingCmd(command), args)
 
-        command = reweighting.Plugin.getReweightingCmd(command)
-        check_call(command, shell=True, stdout=sys.stdout, stderr=sys.stderr, env=None, cwd=None)
+        command2 = "python3 " + os.path.join(REWEIGHTING_SCRIPTS, "analyse.py")
+        args2 = "--output_directory {0} --filename_cluster_counts {1}".format(self._getExtraPath(),
+                                                                              infileclustersize)
+        self.runJob(reweighting.Plugin.getReweightingCmd(command2), args2)
 
     def createOutputStep(self):
         # register output files
         self.args = {}
-        filelist = sorted(os.listdir(self._getExtraPath("Stan_output")))
 
-        for i, filename in enumerate(filelist):
-            self.args["file_" + str(i+1)] = EMFile(filename=self._getExtraPath("Stan_output/" + filename))
+        self.means = np.loadtxt(self._getExtraPath("reweighting_mean_weights.txt"))
+        self.stds = np.loadtxt(self._getExtraPath("reweighting_std_weights.txt"))
 
+        inSet = self.clusterSizePointer.get()
+        if inSet is not None:
+            inputClass = type(inSet)
+            self.idxMap = list(inSet.getIdSet())
+            outSet = inputClass().create(self._getExtraPath())
+            outSet.copyItems(inSet, updateItemCallback=self._addWeights)
+        else:
+            outSet = EMSet().create(self._getExtraPath())
+            self.idxMap = []
+            for i, _ in enumerate(self.means):
+                self.idxMap.append(i)
+                item = EMObject()
+                self._addWeights(item)
+                outSet.append(item)
+
+        self.args["outputSet"] = outSet
         self._defineOutputs(**self.args)
+
+    def _addWeights(self, item, row=None):
+        idx = self.idxMap.index(item.getObjId())
+
+        # We provide data directly so don't need a row
+        mean = Float(self.means[idx])
+        setattr(item, REWEIGHTING_MEAN, mean)
+
+        std = Float(self.stds[idx])
+        setattr(item, REWEIGHTING_STD, std)
 
     # --------------------------- INFO functions -----------------------------------
     def _summary(self):

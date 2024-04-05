@@ -1,9 +1,8 @@
-
 # **************************************************************************
 # *
 # * Authors:     James Krieger (jmkrieger@cnb.csic.es)
 # *
-# * Centro Nacional de Biotecnologia, CSIC
+# * Unidad de  Bioinformatica of Centro Nacional de Biotecnologia, CSIC
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -24,29 +23,32 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
+from pwem.objects import CTFModel, Image
+from pyworkflow.object import String
 
-import os
-import reweighting
+class ReweightingCTF(CTFModel):
 
-REWEIGHTING_HOME = 'REWEIGHTING_HOME'
-REWEIGHTING_URL = 'https://github.com/scipion-em/scipion-em-reweighting'
+    def __init__(self, **kwargs):
+        CTFModel.__init__(self, **kwargs)
+        self._ctfFile = String()
+   
+    def copyInfo(self, other):
+        self.copyAttributes(other, '_defocusU', '_defocusV', '_defocusAngle',
+                            '_defocusRatio', '_psdFile', '_micFile',
+                            '_resolution', '_fitQuality', '_ctfFile')
+        if other.hasPhaseShift():
+            self.setPhaseShift(other.getPhaseShift())   
 
-CONDA_YML = os.path.join(reweighting.__path__[0], 'conda.yaml')
+    def getCtfFile(self):
+        return self._ctfFile.get()
 
-def getReweightingEnvName(version):
-    return "reweighting-%s" % version
+    def setCtfFile(self, value):
+        self._ctfFile.set(value)
 
-V0_0_1 = "0.0.1"
+    def calcCtfImage(self):
+        """ Calculate CTF image from existing data in object.
 
-VERSIONS = [V0_0_1]
-REWEIGHTING_DEFAULT_VER_NUM = V0_0_1
-
-DEFAULT_ENV_NAME = getReweightingEnvName(REWEIGHTING_DEFAULT_VER_NUM)
-DEFAULT_ACTIVATION_CMD = 'conda activate ' + DEFAULT_ENV_NAME
-REWEIGHTING_ENV_ACTIVATION = 'REWEIGHTING_ENV_ACTIVATION'
-
-REWEIGHTING_SCRIPTS = os.path.join(os.path.dirname(reweighting.__file__), 
-                                   "protocols", "scripts")
-
-REWEIGHTING_MEAN = "_reweightingMean"
-REWEIGHTING_STD = "_reweightingStd"
+        This could be Fourier transform of _psdFile data or 
+        fresh calculation from defocus, amp contrast, b_factor, etc.
+        """
+        pass
