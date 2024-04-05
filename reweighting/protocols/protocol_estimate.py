@@ -147,13 +147,14 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
     # --------------------------- STEPS functions ------------------------------
     def _insertAllSteps(self):
         # Insert processing steps
+        self._insertFunctionStep('convertInputStep')
         self._insertFunctionStep('calculationStep')
         self._insertFunctionStep('createOutputStep')
 
-    def calculationStep(self):
+    def convertInputStep(self):
 
         if self.infileClusterSizeData.get() == self.IMPORT_FROM_FILES:
-            infileclustersize = self.clusterSizeFile.get()
+            self.infileclustersize = self.clusterSizeFile.get()
         else:
             clusterSizeObject = self.clusterSizePointer.get()
             if hasattr(clusterSizeObject.getFirstItem(), '_weights'):
@@ -169,8 +170,8 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
             if self.clusterSizes.sum() != 1:
                 self.clusterSizes /= self.clusterSizes.sum()
 
-            infileclustersize = self._getExtraPath('cluster_sizes.txt')
-            np.savetxt(infileclustersize, self.clusterSizes)
+            self.infileclustersize = self._getExtraPath('cluster_sizes.txt')
+            np.savetxt(self.infileclustersize, self.clusterSizes)
 
         if self.infileImageDistanceData.get() == self.IMPORT_FROM_FILES:
             infileimagedistance = self.getMatchFiles()
@@ -189,9 +190,11 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
 
                 infileimagedistance.append(filename)
             
-        infileimagedistance = " ".join(infileimagedistance)
+        self.infileimagedistance = " ".join(infileimagedistance)
 
-        params = (infileclustersize, infileimagedistance, 
+    def calculationStep(self):
+
+        params = (self.infileclustersize, self.infileimagedistance, 
                   self._getExtraPath(),
                   self.chains.get(), self.iterwarmup.get(),
                   self.itersample.get(), self.lambda_.get())
@@ -210,7 +213,7 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
 
         command2 = "python3 " + os.path.join(REWEIGHTING_SCRIPTS, "analyse.py")
         args2 = "--output_directory {0} --filename_cluster_counts {1}".format(self._getExtraPath(),
-                                                                              infileclustersize)
+                                                                              self.infileclustersize)
         self.runJob(reweighting.Plugin.getReweightingCmd(command2), args2)
 
     def createOutputStep(self):
