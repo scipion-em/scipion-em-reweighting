@@ -33,12 +33,9 @@ import reweighting
 
 import os
 
-from pwem.objects import AtomStruct, SetOfTrajFrames, SetOfParticles, EMFile
+from pwem.objects import EMFile
 from pwem.protocols import EMProtocol
-
-from pwchem.objects import MDSystem
-
-from pyworkflow.protocol import params, Integer
+from pyworkflow.protocol import params
 
 from subprocess import check_call
 import sys
@@ -220,25 +217,20 @@ class ReweightingImageDistancesProtocol(EMProtocol):
                   self.sigma.get(), self.snr.get(),
                   self.nBatch.get(), device)
         
-        command = """python3 -m tools.calc_rot_mats --top_image {0} --traj_image {1} \
-            --top_struc {2} --traj_struc {3} --outdir {5} --n_batch {10}""".format(*params)
-        command = reweighting.Plugin.getReweightingCmd(command)
-        check_call(command, shell=True, stdout=sys.stdout, stderr=sys.stderr, env=None, cwd=None)
+        command = """python3 -m tools.calc_rot_mats"""
+        args = """--top_image {0} --traj_image {1} --top_struc {2} --traj_struc {3} --outdir {5} \
+--n_batch {10}""".format(*params)
+        self.runJob(reweighting.Plugin.getReweightingCmd(command), args)
 
-        command = """python3 -m cryoER.calc_image_struc_distance --top_image {0} --traj_image {1} \
-            --top_struc {2} --traj_struc {3} --rotmat_struc_imgstruc {4} \
-            --outdir {5} \
-            --n_pixel {6} \
-            --pixel_size {7} \
-            --sigma {8} \
-            --signal_to_noise_ratio {9} \
-            --n_batch {10} --device {11}""".format(*params)
+        command = """python3 -m cryoER.calc_image_struc_distance"""
+        args = """ --top_image {0} --traj_image {1} --top_struc {2} --traj_struc {3} \
+--rotmat_struc_imgstruc {4} --outdir {5} --n_pixel {6} --pixel_size {7} --sigma {8} \
+--signal_to_noise_ratio {9} --n_batch {10} --device {11}""".format(*params)
         
         if self.ctfBool.get():
-            command += " --ctf"
+            args += " --ctf"
 
-        command = reweighting.Plugin.getReweightingCmd(command)
-        check_call(command, shell=True, stdout=sys.stdout, stderr=sys.stderr, env=None, cwd=None)
+        self.runJob(reweighting.Plugin.getReweightingCmd(command), args)
 
     def createOutputStep(self):
         # register output files
