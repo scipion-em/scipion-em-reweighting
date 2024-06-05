@@ -135,7 +135,7 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
                       help='(for parallelization) number of chains in parallel for MCMC')
         
         form.addParam('threadsperchain', params.IntParam, default=1,
-                      label="number of threads per chain",
+                      label="Number of threads per chain",
                       expertLevel=params.LEVEL_ADVANCED,
                       help='(for parallelization) number of threads per chain for MCMC')
 
