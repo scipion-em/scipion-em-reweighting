@@ -116,22 +116,18 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
         
         form.addParam('chains', params.IntParam, default=4,
                       label="Number of MCMC chains",
-                      # expertLevel=params.LEVEL_ADVANCED,
                       help='Number of chains for Markov Chain Monte Carlo for posterior sampling')
         
         form.addParam('iterwarmup', params.IntParam, default=200,
                       label="Number of warm up iterations",
-                      # expertLevel=params.LEVEL_ADVANCED,
                       help='Number of MCMC warm up steps')
         
         form.addParam('itersample', params.IntParam, default=2000,
                       label="Number of sample iterations",
-                      # expertLevel=params.LEVEL_ADVANCED,
                       help='Number of MCMC sample steps')
         
         form.addParam('parallelchain', params.IntParam, default=1,
                       label="Number of chains in parallel",
-                      # expertLevel=params.LEVEL_ADVANCED,
                       help='(for parallelization) number of chains in parallel for MCMC')
         
         form.addParam('threadsperchain', params.IntParam, default=1,
