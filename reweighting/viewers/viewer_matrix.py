@@ -98,7 +98,7 @@ class ReweightingLLViewer(ProtocolViewer):
         volNumber2 = self.volNumber2.get() # no subtraction as end of range
         self._checkNumbers(volNumber1, volNumber2, 'volume')
         
-        filename = self._getExtraPath('matrix.npy')
+        filename = self.protocol._getExtraPath('matrix.npy')
         if not os.path.exists(filename):
             matrix = np.array([particle._xmipp_logLikelihood.get() for particle in self.outputs])
             matrix = matrix.reshape((len(self.refs),-1))
