@@ -34,7 +34,7 @@ import numpy as np
 
 from pwem.viewers.plotter import EmPlotter
 
-from pyworkflow.protocol.params import LabelParam, IntParam
+from pyworkflow.protocol.params import LabelParam, IntParam, FloatParam
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER, WEB_DJANGO
 
 from xmipp3.protocols.protocol_compute_likelihood import XmippProtComputeLikelihood
@@ -70,13 +70,13 @@ class ReweightingLLViewer(ProtocolViewer):
                       label='Final volume number')
 
         group = form.addGroup('Values range')
-        group.addParam('vmin', IntParam, default=-1,
+        group.addParam('vmin', FloatParam, default=-1,
                       label='Minimum blue value',
                       help='All values below this will be coloured blue if not -1')
-        group.addParam('vmax', IntParam, default=-1,
+        group.addParam('vmax', FloatParam, default=-1,
                       label='Maximum yellow value',
                       help='All values above this will be coloured yellow if not -1')
-        group.addParam('percentile', IntParam, default=-1,
+        group.addParam('percentile', FloatParam, default=-1,
                       label='Percentile alternative to vmin and vmax',
                       help='If either of the above values is -1, they will be estimated as this percentile')
 
