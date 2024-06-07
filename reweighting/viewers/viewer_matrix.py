@@ -31,6 +31,7 @@ visualization programs.
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
+import os
 
 from pwem.viewers.plotter import EmPlotter
 
@@ -97,8 +98,13 @@ class ReweightingLLViewer(ProtocolViewer):
         volNumber2 = self.volNumber2.get() # no subtraction as end of range
         self._checkNumbers(volNumber1, volNumber2, 'volume')
         
-        matrix = np.array([particle._xmipp_logLikelihood.get() for particle in self.outputs])
-        matrix = matrix.reshape((len(self.refs),-1))
+        filename = self._getExtraPath('matrix.npy')
+        if not os.path.exists(filename):
+            matrix = np.array([particle._xmipp_logLikelihood.get() for particle in self.outputs])
+            matrix = matrix.reshape((len(self.refs),-1))
+            np.save(filename, matrix)
+        else:
+            matrix = np.load(filename)
 
         if volNumber1 != -1 and volNumber2 != -1:
             matrix = matrix[volNumber1:volNumber2]
