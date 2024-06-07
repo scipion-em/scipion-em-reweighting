@@ -201,7 +201,7 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
 
         command = "python3 -m cryoER.run_cryoER_mcmc"
         args = """--infileclustersize {0} --infileimagedistance {1} --outdir \
-{2} --chains {3} --iterwarmup {4} --itersample {5}""".format(*params)
+{2} --chains {3} --iterwarmup {4} --itersample {5} --lmbd {6}""".format(*params)
         
         parallelChains = self.parallelchain.get()
         threadsPerChain = self.threadsperchain.get()
