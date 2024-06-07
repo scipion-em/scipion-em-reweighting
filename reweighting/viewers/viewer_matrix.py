@@ -122,7 +122,8 @@ class ReweightingLLViewer(ProtocolViewer):
             partMax = len(self.particles)+1
 
         plotter = EmPlotter()
-        plt.imshow(matrix, aspect='auto')
+        im = plt.imshow(matrix, aspect='auto')
+        plt.colorbar(mappable=im)
 
         plt.ylabel('Reference volumes')
         plt.yticks(range(volMax-volMin), range(volMin, volMax))
