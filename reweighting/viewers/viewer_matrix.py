@@ -69,6 +69,17 @@ class ReweightingLLViewer(ProtocolViewer):
         group.addParam('volNumber2', IntParam, default=-1,
                       label='Final volume number')
 
+        group = form.addGroup('Values range')
+        group.addParam('vmin', IntParam, default=-1,
+                      label='Minimum blue value',
+                      help='All values below this will be coloured blue if not -1')
+        group.addParam('vmax', IntParam, default=-1,
+                      label='Maximum yellow value',
+                      help='All values above this will be coloured yellow if not -1')
+        group.addParam('percentile', IntParam, default=-1,
+                      label='Percentile alternative to vmin and vmax',
+                      help='If either of the above values is -1, they will be estimated as this percentile')
+
         form.addParam('displayLL', LabelParam, default=False,
                 label="Plot log likelihood matrix?",
                 help="Matrices are shown as heatmaps.")
@@ -121,8 +132,25 @@ class ReweightingLLViewer(ProtocolViewer):
             partMin = 1
             partMax = len(self.particles)+1
 
+        vmin = self.vmin.get()
+        if vmin == -1:
+            vmin = None
+
+        vmax = self.vmax.get()
+        if vmax == -1:
+            vmax = None
+
+        p = self.percentile.get()
+        if p == -1:
+            p = None
+
+        if p is not None:
+            vmin = np.percentile(matrix, p) if vmin is None else vmin
+            vmax = np.percentile(matrix, 100-p) if vmax is None else vmax
+
         plotter = EmPlotter()
-        im = plt.imshow(matrix, aspect='auto')
+        im = plt.imshow(matrix, aspect='auto',
+                        vmin=vmin, vmax=vmax)
         plt.colorbar(mappable=im)
 
         plt.ylabel('Reference volumes')
