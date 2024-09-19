@@ -33,8 +33,10 @@ import numpy as np
 import os
 
 from pwem.protocols import EMProtocol
-from pwem.objects import EMSet, EMObject, EMFile, Float
+from pwem.objects import EMSet, EMObject, EMFile
+
 from pyworkflow.protocol import params
+from pyworkflow.object import Float, String
 
 import reweighting
 from reweighting.constants import (REWEIGHTING_SCRIPTS, 
@@ -72,7 +74,7 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
         form.addParam('clusterSizePointer', params.PointerParam, 
                       label="Cluster size object",
                       condition='infileClusterSizeData == USE_POINTER',
-                      pointerClass='SetOfAtomStructs,SetOfTrajFrames,SetOfVolumes',
+                      pointerClass='SetOfAtomStructs,SetOfTrajFrames,SetOfVolumes,SetOfClassesTraj',
                       help='The input structures can be any set that contains sizes')
         
         form.addParam('infileImageDistanceData', params.EnumParam, choices=['file', 'pointer'],
@@ -129,11 +131,6 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
         form.addParam('parallelchain', params.IntParam, default=1,
                       label="Number of chains in parallel",
                       help='(for parallelization) number of chains in parallel for MCMC')
-        
-        form.addParam('threadsperchain', params.IntParam, default=1,
-                      label="Number of threads per chain",
-                      expertLevel=params.LEVEL_ADVANCED,
-                      help='(for parallelization) number of threads per chain for MCMC')
 
         form.addParam('lambda_', params.FloatParam, default=-1,
                       label="Noise standard deviation lambda",
@@ -200,7 +197,7 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
 {2} --chains {3} --iterwarmup {4} --itersample {5} --lmbd {6}""".format(*params)
         
         parallelChains = self.parallelchain.get()
-        threadsPerChain = self.threadsperchain.get()
+        threadsPerChain = self.numberOfThreads.get()/parallelChains
         if parallelChains > 1 or threadsPerChain > 1:
             args += " --parallelchain {0} --threadsperchain {1}".format(parallelChains, 
                                                                         threadsPerChain)
@@ -242,9 +239,11 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
 
         # We provide data directly so don't need a row
         mean = Float(self.means[idx])
+        mean.setPrecision(1e-6)
         setattr(item, REWEIGHTING_MEAN, mean)
 
         std = Float(self.stds[idx])
+        std.setPrecision(1e-6)
         setattr(item, REWEIGHTING_STD, std)
 
     # --------------------------- INFO functions -----------------------------------
