@@ -197,7 +197,7 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
 {2} --chains {3} --iterwarmup {4} --itersample {5} --lmbd {6}""".format(*params)
         
         parallelChains = self.parallelchain.get()
-        threadsPerChain = self.numberOfThreads.get()/parallelChains
+        threadsPerChain = int(self.numberOfThreads.get()/parallelChains)
         if parallelChains > 1 or threadsPerChain > 1:
             args += " --parallelchain {0} --threadsperchain {1}".format(parallelChains, 
                                                                         threadsPerChain)
