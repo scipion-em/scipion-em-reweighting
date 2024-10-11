@@ -259,3 +259,13 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
         if self.isFinished():
             methods.append("This protocol has printed methods")
         return methods
+
+    def _validate(self):
+        errors = []
+        for i, pointer in enumerate(self.imageDistancePointers):
+            distanceObject = pointer.get()
+            if not isinstance(distanceObject, EMFile):
+                if not hasattr(distanceObject[1], '_xmipp_logLikelihood'):
+                    errors.append('The input particle set {0} must have _xmipp_logLikelihood data'.format(i))
+
+        return errors
