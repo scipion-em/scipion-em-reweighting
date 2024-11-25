@@ -83,7 +83,7 @@ class Plugin(pwem.Plugin):
         def getCondaInstallationReweighting():
             ENV_NAME = getReweightingEnvName(version)
             installationCmd = cls.getCondaActivationCmd()
-            installationCmd += f" conda env create -n {ENV_NAME} -f {CONDA_YML} --force && "
+            installationCmd += f" conda env create -n {ENV_NAME} -f {CONDA_YML} --yes && "
             installationCmd += f"conda activate {ENV_NAME} && "
 
             clonePath = os.path.join(pwem.Config.EM_ROOT, "Reweighting")
