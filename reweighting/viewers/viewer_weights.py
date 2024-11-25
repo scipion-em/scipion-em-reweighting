@@ -118,7 +118,7 @@ class ReweightingWeightsViewer(ProtocolViewer):
         
         labels = ['{:5.3f} +/- {:5.3f}'.format(m, s) for (m, s) in zip(means, stds)]
         for i in range(len(means)):
-            plt.text(i-0.3, means[i]+0.05, labels[i])
+            plt.text(i-1/len(means), means[i]+0.05, labels[i])
 
         plt.xlabel('Reference volumes')
         plt.xticks(range(volMax-volMin), range(volMin, volMax))
