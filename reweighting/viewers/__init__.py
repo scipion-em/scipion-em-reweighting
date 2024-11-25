@@ -4,3 +4,4 @@
 # Find documentation here: https://scipion-em.github.io/docs/docs/developer/creating-a-viewer
 # **************************************************************************
 from .viewer_matrix import ReweightingLLViewer
+from .viewer_weights import ReweightingWeightsViewer
