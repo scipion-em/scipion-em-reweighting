@@ -219,7 +219,7 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
         inSet = self.clusterSizePointer.get()
         if inSet is not None:
             inputClass = type(inSet)
-            self.idxMap = list(inSet.getIdSet())
+            self.idxMap = sorted(list(inSet.getIdSet()))
             outSet = inputClass().create(self._getExtraPath())
             outSet.copyItems(inSet, updateItemCallback=self._addWeights)
         else:
