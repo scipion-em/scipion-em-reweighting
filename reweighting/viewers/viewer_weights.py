@@ -35,7 +35,7 @@ import os
 
 from pwem.viewers.plotter import EmPlotter
 
-from pyworkflow.protocol.params import LabelParam, IntParam, FloatParam
+from pyworkflow.protocol.params import LabelParam, IntParam, FloatParam, BooleanParam
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER, WEB_DJANGO
 
 from reweighting.protocols.protocol_estimate import ReweightingEstimateWeightsProtocol
@@ -67,6 +67,9 @@ class ReweightingWeightsViewer(ProtocolViewer):
         group.addParam('vmax', FloatParam, default=-1,
                       label='Maximum value',
                       help='The axis will be cropped above this value')
+
+        group.addParam('label', BooleanParam, label="Label bars?", default=False,
+                      help='Select whether to label bars with weights.')
 
         form.addParam('displayWeights', LabelParam, default=False,
                 label="Plot weight histogram?",
@@ -116,10 +119,11 @@ class ReweightingWeightsViewer(ProtocolViewer):
         plt.errorbar(range(len(means)), means, yerr=stds, 
                      fmt='none', color='k', capsize=5)
         
-        labels = ['{:5.3f} +/- {:6.4f}'.format(m, s) for (m, s) in zip(means, stds)]
-        for i in range(len(means)):
-            plt.text(i, means[i]+0.05, labels[i],
-                     horizontalalignment='center')
+        if self.label.get():
+            labels = ['{:5.3f} +/- {:6.4f}'.format(m, s) for (m, s) in zip(means, stds)]
+            for i in range(len(means)):
+                plt.text(i, means[i]+0.05, labels[i],
+                        horizontalalignment='center')
 
         plt.xlabel('Reference volumes')
         plt.xticks(range(volMax-volMin), range(volMin, volMax))
