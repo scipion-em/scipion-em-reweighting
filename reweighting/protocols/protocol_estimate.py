@@ -265,7 +265,7 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
         for i, pointer in enumerate(self.imageDistancePointers):
             distanceObject = pointer.get()
             if not isinstance(distanceObject, EMFile):
-                if not hasattr(distanceObject[1], '_xmipp_logLikelihood'):
-                    errors.append('The input particle set {0} must have _xmipp_logLikelihood data'.format(i))
+                if not hasattr(distanceObject.getFirstItem(), '_xmipp_logLikelihood'):
+                    errors.append('The input particle set {0} must have _xmipp_logLikelihood data'.format(i+1))
 
         return errors
