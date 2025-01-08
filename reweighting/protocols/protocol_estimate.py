@@ -175,7 +175,7 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
                 if isinstance(distanceObject, EMFile):
                     filename = distanceObject.getFileName()
                 else:
-                    if hasattr(distanceObject[1], '_xmipp_logLikelihood'):
+                    if hasattr(distanceObject.getFirstItem(), '_xmipp_logLikelihood'):
                         imageDistances = np.array([particle._xmipp_logLikelihood.get() for particle in distanceObject])
                         imageDistances = imageDistances.reshape((len(self.clusterSizes),-1))
                         filename = self._getExtraPath('image_distances_{0}.npy'.format(i+1))
