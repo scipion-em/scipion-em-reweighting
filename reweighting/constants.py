@@ -36,6 +36,9 @@ CONDA_YML = os.path.join(reweighting.__path__[0], 'conda.yaml')
 def getReweightingEnvName(version):
     return "reweighting-%s" % version
 
+def getCryoLikeEnvName(version):
+    return "cryolike-%s" % version
+
 V0_0_1 = "0.0.1"
 
 VERSIONS = [V0_0_1]

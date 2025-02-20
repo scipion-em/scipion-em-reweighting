@@ -111,11 +111,30 @@ class Plugin(pwem.Plugin):
             installationCmd += "touch reweighting_torch_svd_installed"
             return installationCmd
 
+        def getCondaInstallationCryoLike():
+            ENV_NAME = getCryoLikeEnvName(version)
+            installationCmd = cls.getCondaActivationCmd()
+            installationCmd += f" conda create -n {ENV_NAME} python=3.10 --yes && "
+            installationCmd += f"conda activate {ENV_NAME}  && "
+
+            clonePath = os.path.join(pwem.Config.EM_ROOT,"cryolike")
+            if not os.path.exists(clonePath):
+                installationCmd += "git clone -b main https://github.com/flatironinstitute/CryoLike cryolike && "
+            installationCmd += "cd cryolike && "
+            installationCmd += "pip install numpy scipy matplotlib tqdm mrcfile mdtraj && "
+            installationCmd += "pip install torch torchvision finufft cufinufft && "
+            installationCmd += "pip install -Ue . && cd .. && "
+
+            installationCmd += "touch reweighting_cryolike_installed"
+            return installationCmd
+
         commands = []
         installationEnv = getCondaInstallationReweighting()
         installationTorchSVD = getCondaInstallationTorchSVD()
+        installationCryoLike = getCondaInstallationCryoLike()
         commands.append((installationEnv, ["reweighting_installed"]))
         commands.append((installationTorchSVD, ["reweighting_torch_svd_installed"]))
+        commands.append((installationCryoLike, ["reweighting_cryolike_installed"]))
 
         env.addPackage('reweighting', version=version,
                        commands=commands,
