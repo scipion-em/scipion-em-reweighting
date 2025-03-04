@@ -180,6 +180,11 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
                         imageDistances = imageDistances.reshape((len(self.clusterSizes),-1))
                         filename = self._getExtraPath('image_distances_{0}.npy'.format(i+1))
                         np.save(filename, imageDistances)
+                    elif hasattr(distanceObject.getFirstItem(), '_cryolike_logLikelihood'):
+                        imageDistances = np.array([particle._cryolike_logLikelihood.get() for particle in distanceObject])
+                        imageDistances = imageDistances.reshape((len(self.clusterSizes),-1))
+                        filename = self._getExtraPath('image_distances_{0}.npy'.format(i+1))
+                        np.save(filename, imageDistances)
 
                 infileimagedistance.append(filename)
             
@@ -265,7 +270,8 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
         for i, pointer in enumerate(self.imageDistancePointers):
             distanceObject = pointer.get()
             if not isinstance(distanceObject, EMFile):
-                if not hasattr(distanceObject.getFirstItem(), '_xmipp_logLikelihood'):
-                    errors.append('The input particle set {0} must have _xmipp_logLikelihood data'.format(i+1))
+                if not (hasattr(distanceObject.getFirstItem(), '_xmipp_logLikelihood')
+                        or hasattr(distanceObject.getFirstItem(), '_cryolike_logLikelihood')):
+                    errors.append('The input particle set {0} must have xmipp or cryolike logLikelihood data'.format(i+1))
 
         return errors
