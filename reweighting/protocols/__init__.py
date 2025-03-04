@@ -4,3 +4,4 @@
 # **************************************************************************
 from .protocol_estimate import ReweightingEstimateWeightsProtocol
 from .protocol_compute_likelihood import ReweightingProtComputeLikelihood
+from .protocol_correlate_likelihoods import ReweightingCorrelateProtocol
