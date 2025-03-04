@@ -28,7 +28,6 @@ import pwem
 import os
 import pyworkflow.utils as pwutils
 from pyworkflow import Config
-from scipion.install.funcs import VOID_TGZ
 
 from reweighting.constants import *
 
@@ -44,6 +43,7 @@ class Plugin(pwem.Plugin):
     @classmethod
     def _defineVariables(cls):
         cls._defineVar(REWEIGHTING_ENV_ACTIVATION, DEFAULT_ACTIVATION_CMD)
+        cls._defineVar(CRYOLIKE_ENV_ACTIVATION, CRYOLIKE_DEFAULT_ACTIVATION_CMD)
 
     @classmethod
     def getEnviron(cls):
@@ -61,11 +61,22 @@ class Plugin(pwem.Plugin):
         """ Return the activation command. """
         return '%s %s' % (cls.getCondaActivationCmd(),
                           cls.getReweightingEnvActivation())
-    
+
     @classmethod
     def getReweightingEnvActivation(cls):
         """ Activate the conda environment. """
         return cls.getVar(REWEIGHTING_ENV_ACTIVATION)
+
+    @classmethod
+    def getCryoLikeCmd(cls, args):
+        cmd = '%s %s && ' % (cls.getCondaActivationCmd(), cls.getCryoLikeEnvActivation())
+        cmd += args
+        return cmd
+
+    @classmethod
+    def getCryoLikeEnvActivation(cls):
+        """ Activate the conda environment. """
+        return cls.getVar(CRYOLIKE_ENV_ACTIVATION)
 
     @classmethod
     def isVersionActive(cls):
@@ -121,8 +132,9 @@ class Plugin(pwem.Plugin):
             if not os.path.exists(clonePath):
                 installationCmd += "git clone -b temp https://github.com/jamesmkrieger/CryoLike cryolike && "
             installationCmd += "cd cryolike && "
-            installationCmd += "pip install numpy scipy matplotlib tqdm mrcfile mdtraj && "
-            installationCmd += "pip install torch torchvision finufft cufinufft && "
+            installationCmd += "pip install numpy scipy matplotlib tqdm mrcfile mdtraj "
+            installationCmd += "torch torchvision finufft cufinufft pydantic "
+            installationCmd += "pydantic starfile && "
             installationCmd += "pip install -Ue . && cd .. && "
 
             installationCmd += "touch reweighting_cryolike_installed"
