@@ -224,7 +224,7 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
         for j, ind in enumerate([item.getObjId() for item in inputParticles]):
             self.idmap[ind] = j
 
-        self.i=1
+        self.i=0
         if isinstance(self.inputRefs.get(), Volume):
             self.LLs[self.i] = np.load(os.path.join(self._getExtraPath(
                 'likelihood/template%d/log_likelihood/log_likelihood_integrated_fourier_stack_000000.npy') % self.i))
