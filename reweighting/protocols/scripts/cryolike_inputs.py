@@ -18,6 +18,10 @@ if __name__ == '__main__':
     parser.add_argument('--pixel_size', type=float, required=True)
     parser.add_argument('--box_size', type=int, required=True)
     parser.add_argument('--batch_size', type=int, required=True)
+
+    parser.add_argument('--viewing_distance', type=float, required=True)
+    parser.add_argument('--n_inplanes', type=int, required=True)
+
     parser.add_argument('--use_cuda', required=False, 
                         default=False, action='store_true')
 
@@ -35,8 +39,8 @@ if __name__ == '__main__':
         pixel_size = args.pixel_size,
         resolution_factor = 1.0,
         precision = 'single',
-        viewing_distance = 8.0 / (4.0 * pi),
-        n_inplanes = 256,
+        viewing_distance = args.viewing_distance / (4.0 * pi),
+        n_inplanes = args.n_inplanes,
         use_protein_residue_model = True,
         atom_shape = 'gaussian'
     )

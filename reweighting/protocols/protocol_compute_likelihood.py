@@ -34,7 +34,7 @@ from pwem.objects import Volume, SetOfParticles
 from pyworkflow import VERSION_1_1
 from pyworkflow.object import Float
 from pyworkflow.protocol.params import (PointerParam, StringParam, USE_GPU, GPU_LIST,
-                                        BooleanParam)
+                                        BooleanParam, FloatParam, IntParam)
 from pyworkflow.protocol import STEPS_PARALLEL
 from pyworkflow.protocol.constants import LEVEL_ADVANCED
 import pyworkflow.utils as pwutils
@@ -66,7 +66,16 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
         form.addParam('inputRefs', PointerParam, label="References", important=True,
                       pointerClass='Volume,SetOfVolumes,AtomStruct,SetOfAtomStructs',
                       help='Volume, set of volumes or set of atomic structures to which the set of '\
-                           'particles will be compared')         
+                           'particles will be compared')
+
+        form.addParam('viewingDistance', FloatParam, label="Viewing Distance", default=1,
+                      help='Distance between views sampled in units of 1/4*pi on the sphere of rotations, '\
+                           'excluding in-plane ones')
+        form.addParam('nInplanes', IntParam, label="Number of In-Plane Rotations", default=256,
+                      help='Number of in-plane rotations sampled for each view')
+
+        form.addParam('batchSize', IntParam, label="Number of images per batch", default=128)
+
         form.addParallelSection(threads=3, mpi=8)
 
         form.addHidden(USE_GPU, BooleanParam, default=False,
@@ -155,7 +164,10 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
         xdim = inputParticles.getFirstItem().getXDim()
         args += '--pixel_size %f --box_size %d ' % (Ts, xdim)
 
-        args += '--batch_size %d ' % inputParticles.getSize()
+        args += '--viewing_distance %f --n_inplanes %d ' % (self.viewingDistance.get(),
+                                                            self.nInplanes.get())
+
+        args += '--batch_size %d ' % self.batchSize.get()
         if self.useGpu:
             args+="--use_cuda "
             gpuId = self._stepsExecutor.getGpuList()
@@ -201,6 +213,7 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
         with converted particles and image parameters to calculate likelihoods.
         """
         args = '--i %d --folder_output %s --ref %s ' % (i, self._getExtraPath(), fnVol)
+        args += '--batch_size %d ' % self.batchSize.get()
         if self.useGpu:
             args+="--use_cuda "
             gpuId = self._stepsExecutor.getGpuList()

@@ -14,6 +14,7 @@ if __name__ == '__main__':
     parser.add_argument('--folder_output', type=str, required=True)
     parser.add_argument('--use_cuda', required=False, 
                         default=False, action='store_true')
+    parser.add_argument('--batch_size', type=int, required=True)
     args = parser.parse_args()
 
     templates_dir = os.path.join(args.folder_output, "templates")
@@ -30,8 +31,8 @@ if __name__ == '__main__':
         i_template = args.i,
         n_stacks = 1,
         skip_exist = False,
-        n_templates_per_batch = 8,
-        n_images_per_batch = 8,
+        n_templates_per_batch = 16,
+        n_images_per_batch = args.batch_size,
         search_batch_size = True,
         max_displacement_pixels = 8.0,
         n_displacements_x = 16,
