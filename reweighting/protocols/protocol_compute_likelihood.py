@@ -241,7 +241,7 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
         self._defineSourceRelation(self.inputParticles, outputSet)
 
         matrix = np.array([particle._cryolike_logLikelihood.get() for particle in outputSet])
-        matrix = matrix.reshape((self.i-1,-1))
+        matrix = matrix.reshape((self.i,-1))
         np.save(self._getExtraPath('matrix.npy'), matrix)
 
     def _processRow(self, particle, row):
