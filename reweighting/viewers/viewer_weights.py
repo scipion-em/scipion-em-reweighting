@@ -1,9 +1,6 @@
 # **************************************************************************
 # *
-# * Authors:     J.M. De la Rosa Trevin (jmdelarosa@cnb.csic.es)
-# *              Slavica Jonic  (slavica.jonic@upmc.fr)
-# *              James Krieger (jmkrieger@cnb.csic.es)
-# *              Ricardo Serrano Gutiérrez (rserranogut@hotmail.com)  
+# * Authors:     James Krieger (jmkrieger@cnb.csic.es)
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -29,10 +26,6 @@ This module implement the wrappers around ProDy GNM
 visualization programs.
 """
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-import numpy as np
-import os
-
 from pwem.viewers.plotter import EmPlotter
 
 from pyworkflow.protocol.params import LabelParam, IntParam, FloatParam, BooleanParam
