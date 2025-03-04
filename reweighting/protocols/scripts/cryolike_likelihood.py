@@ -15,6 +15,11 @@ if __name__ == '__main__':
     parser.add_argument('--use_cuda', required=False, 
                         default=False, action='store_true')
     parser.add_argument('--batch_size', type=int, required=True)
+
+    parser.add_argument('--max_displacement_pixels', type=int, required=True)
+    parser.add_argument('--n_displacements_x', type=int, required=True)
+    parser.add_argument('--n_displacements_y', type=int, required=True)
+
     args = parser.parse_args()
 
     templates_dir = os.path.join(args.folder_output, "templates")
@@ -34,9 +39,9 @@ if __name__ == '__main__':
         n_templates_per_batch = 16,
         n_images_per_batch = args.batch_size,
         search_batch_size = True,
-        max_displacement_pixels = 8.0,
-        n_displacements_x = 16,
-        n_displacements_y = 16,
+        max_displacement_pixels = args.max_displacement_pixels,
+        n_displacements_x = args.n_displacements_x,
+        n_displacements_y = args.n_displacements_y,
         return_likelihood_integrated_pose_fourier = True,
         return_likelihood_optimal_pose_physical = False,
         return_likelihood_optimal_pose_fourier = False,

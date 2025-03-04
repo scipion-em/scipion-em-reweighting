@@ -74,6 +74,14 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
         form.addParam('nInplanes', IntParam, label="Number of In-Plane Rotations", default=256,
                       help='Number of in-plane rotations sampled for each view')
 
+        form.addParam('max_displacement_pixels', IntParam, label="Maximum displacement in pixels", default=8,
+                      help='Distance between views sampled in units of 1/4*pi on the sphere of rotations, '\
+                           'excluding in-plane ones')
+        form.addParam('n_displacements_x', IntParam, label="Number of displacements in x", default=16,
+                      help='The maximum displacement is divided into this many displacements')
+        form.addParam('n_displacements_y', IntParam, label="Number of displacements in y", default=16,
+                      help='The maximum displacement is divided into this many displacements')
+        
         form.addParam('batchSize', IntParam, label="Number of images per batch", default=128)
 
         form.addParallelSection(threads=3, mpi=8)
