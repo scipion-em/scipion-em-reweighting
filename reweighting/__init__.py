@@ -130,7 +130,7 @@ class Plugin(pwem.Plugin):
 
             clonePath = os.path.join(pwem.Config.EM_ROOT,"cryolike")
             if not os.path.exists(clonePath):
-                installationCmd += "git clone -b temp https://github.com/jamesmkrieger/CryoLike cryolike && "
+                installationCmd += "git clone -b temp2 https://github.com/jamesmkrieger/CryoLike cryolike && "
             installationCmd += "cd cryolike && "
             installationCmd += "pip install numpy scipy matplotlib tqdm mrcfile mdtraj "
             installationCmd += "torch torchvision finufft cufinufft pydantic "
