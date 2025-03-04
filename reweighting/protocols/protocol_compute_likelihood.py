@@ -222,6 +222,9 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
         """
         args = '--i %d --folder_output %s --ref %s ' % (i, self._getExtraPath(), fnVol)
         args += '--batch_size %d ' % self.batchSize.get()
+        args += '--max_displacement_pixels %d --n_displacements_x %d --n_displacements_y %d ' % (self.max_displacement_pixels.get(),
+                                                                                                 self.n_displacements_x.get(),
+                                                                                                 self.n_displacements_y.get())
         if self.useGpu:
             args+="--use_cuda "
             gpuId = self._stepsExecutor.getGpuList()
