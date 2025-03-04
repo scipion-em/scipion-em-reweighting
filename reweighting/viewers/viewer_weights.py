@@ -45,7 +45,7 @@ _invalidInputStr = 'Invalid input'
 class ReweightingWeightsViewer(ProtocolViewer):
     """ Visualization of results from the Xmipp log likelihood protocol.
     """
-    _label = 'Log likelihood matrix viewer'
+    _label = 'Weights viewer'
     _targets = [ReweightingEstimateWeightsProtocol]
     _environments = [DESKTOP_TKINTER, WEB_DJANGO]
     
