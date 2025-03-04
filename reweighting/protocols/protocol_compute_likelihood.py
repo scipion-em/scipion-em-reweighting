@@ -106,7 +106,7 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
                                             needsGPU=False)
 
         stepIds = []
-        i=1
+        i=0
         if isinstance(inputRefs, Volume):
             llId = self._insertFunctionStep(self.calculateLikelihoodStep, inputRefs.getFileName(), i,
                                             prerequisites=compStep, needsGPU=self.useGpu)
@@ -188,7 +188,7 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
     def compileTemplateListsStep(self):
         """Read template list npy files and compile them into one list npy file.
         """
-        list_of_file_lists = pwutils.glob('Runs/014645_ReweightingProtComputeLikelihood/extra/templates/*npy')
+        list_of_file_lists = pwutils.glob(self._getExtraPath('templates/*npy'))
         list_of_template_files = []
         for list_file in list_of_file_lists:
             list_of_template_files.extend(list(np.load(list_file)))
