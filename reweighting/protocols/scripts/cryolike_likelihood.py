@@ -14,7 +14,9 @@ if __name__ == '__main__':
     parser.add_argument('--folder_output', type=str, required=True)
     parser.add_argument('--use_cuda', required=False, 
                         default=False, action='store_true')
+
     parser.add_argument('--batch_size', type=int, required=True)
+    parser.add_argument('--template_batch_size', type=int, required=True)
 
     parser.add_argument('--max_displacement_pixels', type=int, required=True)
     parser.add_argument('--n_displacements_x', type=int, required=True)
@@ -36,7 +38,7 @@ if __name__ == '__main__':
         i_template = args.i,
         n_stacks = 1,
         skip_exist = False,
-        n_templates_per_batch = 16,
+        n_templates_per_batch = args.template_batch_size,
         n_images_per_batch = args.batch_size,
         search_batch_size = True,
         max_displacement_pixels = args.max_displacement_pixels,

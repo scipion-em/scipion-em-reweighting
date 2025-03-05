@@ -83,6 +83,7 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
                       help='The maximum displacement is divided into this many displacements')
         
         form.addParam('batchSize', IntParam, label="Number of images per batch", default=128)
+        form.addParam('templateBatchSize', IntParam, label="Number of reprojection templates per batch", default=16)
 
         form.addParallelSection(threads=3, mpi=8)
 
@@ -221,7 +222,7 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
         with converted particles and image parameters to calculate likelihoods.
         """
         args = '--i %d --folder_output %s --ref %s ' % (i, self._getExtraPath(), fnVol)
-        args += '--batch_size %d ' % self.batchSize.get()
+        args += '--batch_size %d --template_batch_size %d' % (self.batchSize.get(), self.templateBatchSize.get())
         args += '--max_displacement_pixels %d --n_displacements_x %d --n_displacements_y %d ' % (self.max_displacement_pixels.get(),
                                                                                                  self.n_displacements_x.get(),
                                                                                                  self.n_displacements_y.get())
