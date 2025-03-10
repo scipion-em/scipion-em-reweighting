@@ -222,7 +222,7 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
         with converted particles and image parameters to calculate likelihoods.
         """
         args = '--i %d --folder_output %s --ref %s ' % (i, self._getExtraPath(), fnVol)
-        args += '--batch_size %d --template_batch_size %d' % (self.batchSize.get(), self.templateBatchSize.get())
+        args += '--batch_size %d --template_batch_size %d ' % (self.batchSize.get(), self.templateBatchSize.get())
         args += '--max_displacement_pixels %d --n_displacements_x %d --n_displacements_y %d ' % (self.max_displacement_pixels.get(),
                                                                                                  self.n_displacements_x.get(),
                                                                                                  self.n_displacements_y.get())
