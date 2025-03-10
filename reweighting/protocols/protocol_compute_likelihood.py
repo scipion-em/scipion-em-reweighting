@@ -277,6 +277,6 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
     def _createFilenameTemplates(self):
         """ Centralize how files are called for iterations and references. """
         myDict = {
-            'input_star': self._getPath('input_particles.star'),
+            'input_star': self._getExtraPath('particles/input_particles.star'),
         }
         self._updateFilenamesDict(myDict)
