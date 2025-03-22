@@ -73,23 +73,24 @@ class ReweightingCorrelationViewer(ProtocolViewer):
     def _viewScatter(self, paramName):
         """ visualization of scatters and correlation coefficients for all references or the range selected. """
 
-
+        self.matrix1 = np.load(self.protocol.getMatrixPath(1))
         self._checkNumbers(1)
-        matrix1 = np.load(self.protocol.getMatrixPath(1))[self.volumeNumber1:self.volumeNumber2]
+        self.matrix1 = self.matrix1[self.volumeNumber1:self.volumeNumber2]
 
+        self.matrix2 = np.load(self.protocol.getMatrixPath(2))
         self._checkNumbers(2)
-        matrix2 = np.load(self.protocol.getMatrixPath(2))[self.volumeNumber1:self.volumeNumber2]
+        self.matrix2 = self.matrix2[self.volumeNumber1:self.volumeNumber2]
 
         if self.flipVols.get():
-            matrix2 = np.flip(matrix2, axis=0)
+            self.matrix2 = np.flip(self.matrix2, axis=0)
 
         if self.subtract.get():
-            matrix1 = np.subtract(matrix1, np.mean(matrix1, axis=0))
-            matrix2 = np.subtract(matrix2, np.mean(matrix2, axis=0))
+            self.matrix1 = np.subtract(self.matrix1, np.mean(self.matrix1, axis=0))
+            self.matrix2 = np.subtract(self.matrix2, np.mean(self.matrix2, axis=0))
 
         plotter = EmPlotter()
-        corrcoeff = np.corrcoef(matrix1.flatten(), matrix2.flatten())[0,1]
-        plt.scatter(matrix1.flatten(), matrix2.flatten(), label='%6.3f' % corrcoeff)
+        corrcoeff = np.corrcoef(self.matrix1.flatten(), self.matrix2.flatten())[0,1]
+        plt.scatter(self.matrix1.flatten(), self.matrix2.flatten(), label='%6.3f' % corrcoeff)
         if self.label.get():
             plt.legend()
 
@@ -104,13 +105,11 @@ class ReweightingCorrelationViewer(ProtocolViewer):
         self.volumeNumber1 = self.volNumber1.get()-1 if self.volNumber1.get() != -1 else 0
 
         if setNumber == 1:
-            string = 'particle set 1'
-            items = self.protocol.inputParticles1.get()
+            string = 'volume number for matrix 1'
+            self.volumeNumber2 = self.volNumber2.get() if self.volNumber2.get() != -1 else len(self.matrix1)
         elif setNumber == 2:
-            string = 'particle set 2'
-            items = self.protocol.inputParticles2.get()
-
-        self.volumeNumber2 = self.volNumber2.get() if self.volNumber1.get() != -1 else len(items)+1
+            string = 'volume number for matrix 2'
+            self.volumeNumber2 = self.volNumber2.get() if self.volNumber2.get() != -1 else len(self.matrix2)
 
         if self.volumeNumber1+1 > self.volumeNumber1:
             return [self.errorMessage("Invalid {0} range\n"
