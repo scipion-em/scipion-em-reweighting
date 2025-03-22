@@ -73,22 +73,20 @@ class ReweightingCorrelateProtocol(EMProtocol):
 
     def calculationStep(self):
 
-        matrix1 = np.load(os.path.join(os.path.dirname(self.inputParticles1.get().getFileName()),
-                                       'extra/matrix.npy'))
-        matrix2 = np.load(os.path.join(os.path.dirname(self.inputParticles2.get().getFileName()),
-                                       'extra/matrix.npy'))
+        matrix1 = np.load(self.getMatrixPath(1))
+        matrix2 = np.load(self.getMatrixPath(2))
 
         matrix1 = np.subtract(matrix1, np.mean(matrix1, axis=0))
         matrix2 = np.subtract(matrix2, np.mean(matrix2, axis=0))
 
-        corrcoeffs = np.abs(np.corrcoef(matrix1.flatten(), matrix2.flatten()))
-        np.save(self._getExtraPath('corrrcoeffs.npy'), corrcoeffs)
+        corrcoeffs = np.abs(np.corrcoef(matrix1.flatten(), matrix2.flatten()))[0, 1]
+        np.savetxt(self.getCorrCoeffPath(), np.array(corrcoeffs).reshape(-1), fmt='%5.3f')
 
     def createOutputStep(self):
         # register output files
         self.args = {}
 
-        corrcoeff = np.load(self._getExtraPath("corrrcoeffs.npy"))[0, 1]
+        corrcoeff = np.loadtxt(self.getCorrCoeffPath())
 
         outSet = EMSet().create(self._getExtraPath())
         item = EMObject()
@@ -123,3 +121,15 @@ class ReweightingCorrelateProtocol(EMProtocol):
                     errors.append('The input particle set {0} must have xmipp or cryolike logLikelihood data'.format(i+1))
 
         return errors
+
+    def getMatrixPath(self, number):
+        if number == 1:
+            protocolPath = os.path.dirname(self.inputParticles1.get().getFileName())
+
+        elif number == 2:
+            protocolPath = os.path.dirname(self.inputParticles2.get().getFileName())
+
+        return os.path.join(protocolPath, 'extra/matrix.npy')
+
+    def getCorrCoeffPath(self):
+        return self._getExtraPath('corrcoeff.txt')
