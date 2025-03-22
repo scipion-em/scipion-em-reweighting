@@ -106,10 +106,12 @@ class ReweightingCorrelationViewer(ProtocolViewer):
 
         if setNumber == 1:
             string = 'volume number for matrix 1'
-            self.volumeNumber2 = self.volNumber2.get() if self.volNumber2.get() != -1 else len(self.matrix1)
+            items = self.matrix1
         elif setNumber == 2:
             string = 'volume number for matrix 2'
-            self.volumeNumber2 = self.volNumber2.get() if self.volNumber2.get() != -1 else len(self.matrix2)
+            items = self.matrix2
+
+        self.volumeNumber2 = self.volNumber2.get() if self.volNumber2.get() != -1 else len(items)
 
         if self.volumeNumber1+1 > self.volumeNumber1:
             return [self.errorMessage("Invalid {0} range\n"
