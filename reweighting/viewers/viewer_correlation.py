@@ -93,8 +93,8 @@ class ReweightingCorrelationViewer(ProtocolViewer):
         if self.label.get():
             plt.legend()
 
-        plt.xlabel('Flattened particle number 1')
-        plt.ylabel('Flattened particle number 2')
+        plt.xlabel('Likelihood 1')
+        plt.ylabel('Likelihood 2')
 
         return [plotter]
 
