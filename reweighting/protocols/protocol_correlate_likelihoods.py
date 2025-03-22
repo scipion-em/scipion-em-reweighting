@@ -35,7 +35,7 @@ import os
 from pwem.protocols import EMProtocol
 from pwem.objects import EMSet, EMObject, EMFile
 
-from pyworkflow.protocol.params import PointerParam
+from pyworkflow.protocol.params import PointerParam, BooleanParam
 from pyworkflow.object import Float
 
 class ReweightingCorrelateProtocol(EMProtocol):
@@ -60,9 +60,17 @@ class ReweightingCorrelateProtocol(EMProtocol):
 
         form.addParam('inputParticles1', PointerParam, label="Input images 1", important=True,
                       pointerClass='SetOfParticles', pointerCondition='hasAlignmentProj')
-        
+
         form.addParam('inputParticles2', PointerParam, label="Input images 2", important=True,
                       pointerClass='SetOfParticles', pointerCondition='hasAlignmentProj')
+
+        form.addParam('flipVols', BooleanParam, label="Flip volumes for matrix 2?", default=False,
+                      help='Select whether to flip volumes for matrix 2. This may be useful '
+                           'if they are in the wrong order in one of the likelihood calculations.')
+
+        form.addParam('subtract', BooleanParam, default=True,
+                      label='Shift LL matrix by subtracting mean value of each column?',
+                      help='This may increase the contrast to help with interpretability. ')
 
     # --------------------------- STEPS functions ------------------------------
     def _insertAllSteps(self):
@@ -76,8 +84,12 @@ class ReweightingCorrelateProtocol(EMProtocol):
         matrix1 = np.load(self.getMatrixPath(1))
         matrix2 = np.load(self.getMatrixPath(2))
 
-        matrix1 = np.subtract(matrix1, np.mean(matrix1, axis=0))
-        matrix2 = np.subtract(matrix2, np.mean(matrix2, axis=0))
+        if self.subtract.get():
+            matrix1 = np.subtract(matrix1, np.mean(matrix1, axis=0))
+            matrix2 = np.subtract(matrix2, np.mean(matrix2, axis=0))
+
+        if self.flipVols.get():
+            matrix2 = np.flip(matrix2, axis=0)
 
         corrcoeffs = np.abs(np.corrcoef(matrix1.flatten(), matrix2.flatten()))[0, 1]
         np.savetxt(self.getCorrCoeffPath(), np.array(corrcoeffs).reshape(-1), fmt='%5.3f')
