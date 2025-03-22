@@ -22,8 +22,7 @@
 # *
 # **************************************************************************
 """
-This module implement the wrappers around ProDy GNM 
-visualization programs.
+This module implements visualization of mean and standard deviation weights as bars with errors.
 """
 import matplotlib.pyplot as plt
 from pwem.viewers.plotter import EmPlotter

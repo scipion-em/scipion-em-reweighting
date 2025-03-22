@@ -4,6 +4,7 @@
 # Find documentation here: https://scipion-em.github.io/docs/docs/developer/creating-a-viewer
 # **************************************************************************
 from .viewer_weights import ReweightingWeightsViewer
+from .viewer_correlation import ReweightingCorrelationViewer
 
 try:
     from xmipp3.viewers import XmippLogLikelihoodViewer
