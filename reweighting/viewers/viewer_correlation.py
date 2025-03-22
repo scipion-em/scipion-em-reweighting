@@ -105,10 +105,10 @@ class ReweightingCorrelationViewer(ProtocolViewer):
         self.volumeNumber1 = self.volNumber1.get()-1 if self.volNumber1.get() != -1 else 0
 
         if setNumber == 1:
-            string = 'volume number for matrix 1'
+            string = 'matrix 1 volume'
             items = self.matrix1
         elif setNumber == 2:
-            string = 'volume number for matrix 2'
+            string = 'matrix 2 volume'
             items = self.matrix2
 
         self.volumeNumber2 = self.volNumber2.get() if self.volNumber2.get() != -1 else len(items)
@@ -125,12 +125,12 @@ class ReweightingCorrelationViewer(ProtocolViewer):
                                       "smaller than -1.".format(string), 
                                       title=_invalidInputStr)]
 
-        elif self.volumeNumber1 < -1:
+        elif self.volumeNumber2 < -1:
             return [self.errorMessage("Invalid {0} range\n"
                                       "Final {0} number can not be " 
                                       "smaller than -1.".format(string), 
                                       title=_invalidInputStr)]
-        
+
         if self.volumeNumber1 != -1:
             try:
                 _ = items[self.volumeNumber1]
