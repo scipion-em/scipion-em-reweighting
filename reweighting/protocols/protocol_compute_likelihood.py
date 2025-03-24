@@ -221,11 +221,12 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
         list_of_file_lists = sorted(pwutils.glob(self._getExtraPath('templates/*npy')))
         list_of_template_files = []
         for list_file in list_of_file_lists:
-            if (list_file[:-4].replace('_','').isalnum()
-                and not list_file[:-4].replace('_','').isalpha()):
+            filename = os.path.split(list_file)[1]
+            if (filename[:-4].replace('_','').isalnum()
+                and not filename[:-4].replace('_','').isalpha()):
                 list_of_template_files.extend(list(np.load(list_file)))
 
-        np.save(self._getExtraPath('templates/template_file_list.npy'), 
+        np.save(self._getExtraPath('templates/template_file_list.npy'),
                 list_of_template_files)
 
     def calculateLikelihoodStep(self, fnVol, i):
