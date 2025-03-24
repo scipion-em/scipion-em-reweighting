@@ -218,10 +218,11 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
     def compileTemplateListsStep(self):
         """Read template list npy files and compile them into one list npy file.
         """
-        list_of_file_lists = pwutils.glob(self._getExtraPath('templates/*npy'))
+        list_of_file_lists = sorted(pwutils.glob(self._getExtraPath('templates/*npy')))
         list_of_template_files = []
         for list_file in list_of_file_lists:
-            list_of_template_files.extend(list(np.load(list_file)))
+            if list_file[:-4].replace('_','').isalnum():
+                list_of_template_files.extend(list(np.load(list_file)))
 
         np.save(self._getExtraPath('templates/template_file_list.npy'), 
                 list_of_template_files)
