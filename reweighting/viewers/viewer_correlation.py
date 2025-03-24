@@ -63,6 +63,10 @@ class ReweightingCorrelationViewer(ProtocolViewer):
                       label='Shift LL matrix by subtracting mean value of each column?',
                       help='This may increase the contrast to help with interpretability. ')
 
+        group.addParam('colourRows', BooleanParam, default=False,
+                label="Colour scatter plot by volume?",
+                help="Otherwise, all points are coloured blue.")
+
         form.addParam('displayScatterPlot', LabelParam, default=False,
                 label="Plot scatter plot to illustrate correlations?",
                 help="Scatter plots use flattened matrices from the selected volumes.")
@@ -91,6 +95,12 @@ class ReweightingCorrelationViewer(ProtocolViewer):
         plotter = EmPlotter()
         corrcoeff = np.corrcoef(self.matrix1.flatten(), self.matrix2.flatten())[0,1]
         plt.scatter(self.matrix1.flatten(), self.matrix2.flatten(), label='%6.3f' % corrcoeff)
+
+        if self.colourRows.get():
+            for i, row1 in enumerate(self.matrix1, start=self.volumeNumber1):
+                row2 = self.matrix2[i]
+                plt.scatter(row1, row2, label='row %2d' % (i+1))
+
         if self.label.get():
             plt.legend()
 
