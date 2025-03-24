@@ -66,7 +66,7 @@ class ReweightingCorrelationViewer(ProtocolViewer):
         form.addParam('displayScatterPlot', LabelParam, default=False,
                 label="Plot scatter plot to illustrate correlations?",
                 help="Scatter plots use flattened matrices from the selected volumes.")
-        
+
     def _getVisualizeDict(self):
         return {'displayScatterPlot': self._viewScatter} 
 
@@ -94,8 +94,8 @@ class ReweightingCorrelationViewer(ProtocolViewer):
         if self.label.get():
             plt.legend()
 
-        plt.xlabel('Likelihood 1')
-        plt.ylabel('Likelihood 2')
+        plt.xlabel('Log Likelihood 1')
+        plt.ylabel('Log Likelihood 2')
 
         return [plotter]
 
