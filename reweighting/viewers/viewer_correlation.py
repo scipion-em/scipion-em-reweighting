@@ -105,9 +105,9 @@ class ReweightingCorrelationViewer(ProtocolViewer):
             for i, row1 in enumerate(self.matrix1):
                 row2 = self.matrix2[i]
                 rowNum = start+i
-                plt.scatter(row1, row2, label='row %2d' % (rowNum+1), c=list(TABLEAU_COLORS)[rowNum])
+                plt.scatter(row1, row2, label='row %2d' % (rowNum+1), c=list(TABLEAU_COLORS)[rowNum+1])
         else:
-            plt.scatter(self.matrix1.flatten(), self.matrix2.flatten(), label='all')
+            plt.scatter(self.matrix1.flatten(), self.matrix2.flatten())
 
         if self.label.get():
             plt.legend()
