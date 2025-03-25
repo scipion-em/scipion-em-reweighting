@@ -85,6 +85,11 @@ class ReweightingCorrelationViewer(ProtocolViewer):
             self.matrix1 = np.subtract(self.matrix1, np.mean(self.matrix1, axis=0))
             self.matrix2 = np.subtract(self.matrix2, np.mean(self.matrix2, axis=0))
 
+        xmax = self.matrix1.max()
+        xmin = self.matrix1.min()
+        ymax = self.matrix2.max()
+        ymin = self.matrix2.min()
+
         x = self._checkNumbers(1)
         if x is not True:
             return x
@@ -116,6 +121,9 @@ class ReweightingCorrelationViewer(ProtocolViewer):
 
         plt.xlabel('Log Likelihood 1')
         plt.ylabel('Log Likelihood 2')
+
+        plt.xlim([xmin, xmax])
+        plt.ylim([ymin, ymax])
 
         return [plotter]
 
