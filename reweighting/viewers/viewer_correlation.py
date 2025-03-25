@@ -25,6 +25,7 @@
 This module implements visualization for scatter plots to correlate likelihoods.
 """
 import matplotlib.pyplot as plt
+from matplotlib.colors import TABLEAU_COLORS
 import numpy as np
 
 from pwem.viewers.plotter import EmPlotter
@@ -78,31 +79,40 @@ class ReweightingCorrelationViewer(ProtocolViewer):
         """ visualization of scatters and correlation coefficients for all references or the range selected. """
 
         self.matrix1 = np.load(self.protocol.getMatrixPath(1))
-        self._checkNumbers(1)
-        self.matrix1 = self.matrix1[self.volumeNumber1:self.volumeNumber2]
-
         self.matrix2 = np.load(self.protocol.getMatrixPath(2))
-        self._checkNumbers(2)
-        self.matrix2 = self.matrix2[self.volumeNumber1:self.volumeNumber2]
-
-        if self.flipVols.get():
-            self.matrix2 = np.flip(self.matrix2, axis=0)
 
         if self.subtract.get():
             self.matrix1 = np.subtract(self.matrix1, np.mean(self.matrix1, axis=0))
             self.matrix2 = np.subtract(self.matrix2, np.mean(self.matrix2, axis=0))
 
+        x = self._checkNumbers(1)
+        if x is not True:
+            return x
+        self.matrix1 = self.matrix1[self.volumeNumber1:self.volumeNumber2]
+
+        y = self._checkNumbers(2)
+        if y is not True:
+            return y
+        self.matrix2 = self.matrix2[self.volumeNumber1:self.volumeNumber2]
+
+        if self.flipVols.get():
+            self.matrix2 = np.flip(self.matrix2, axis=0)
+
         plotter = EmPlotter()
-        corrcoeff = np.corrcoef(self.matrix1.flatten(), self.matrix2.flatten())[0,1]
-        plt.scatter(self.matrix1.flatten(), self.matrix2.flatten(), label='%6.3f' % corrcoeff)
 
         if self.colourRows.get():
-            for i, row1 in enumerate(self.matrix1, start=self.volumeNumber1):
+            start = self.volumeNumber1 if self.volumeNumber1 != -1 else 0
+            for i, row1 in enumerate(self.matrix1):
                 row2 = self.matrix2[i]
-                plt.scatter(row1, row2, label='row %2d' % (i+1))
+                rowNum = start+i
+                plt.scatter(row1, row2, label='row %2d' % (rowNum+1), c=list(TABLEAU_COLORS)[rowNum])
+        else:
+            plt.scatter(self.matrix1.flatten(), self.matrix2.flatten(), label='all')
 
         if self.label.get():
             plt.legend()
+            corrcoeff = np.corrcoef(self.matrix1.flatten(), self.matrix2.flatten())[0,1]
+            plt.title('%6.3f' % corrcoeff)
 
         plt.xlabel('Log Likelihood 1')
         plt.ylabel('Log Likelihood 2')
@@ -112,8 +122,6 @@ class ReweightingCorrelationViewer(ProtocolViewer):
 
     def _checkNumbers(self, setNumber):
 
-        self.volumeNumber1 = self.volNumber1.get()-1 if self.volNumber1.get() != -1 else 0
-
         if setNumber == 1:
             string = 'matrix 1 volume'
             items = self.matrix1
@@ -121,40 +129,44 @@ class ReweightingCorrelationViewer(ProtocolViewer):
             string = 'matrix 2 volume'
             items = self.matrix2
 
-        self.volumeNumber2 = self.volNumber2.get() if self.volNumber2.get() != -1 else len(items)
+        self.volumeNumber1 = self.volNumber1.get()-1 if self.volNumber1.get() != -1 else 0
+        self.volumeNumber2 = self.volNumber2.get() if self.volNumber2.get() != -1 else len(items)+1
 
-        if self.volumeNumber1+1 > self.volumeNumber1:
+        if self.volNumber1.get() == -1 and self.volNumber2.get() == -1:
+            return True
+
+        if self.volNumber1.get() != -1 and self.volNumber1.get() < 1:
             return [self.errorMessage("Invalid {0} range\n"
-                                      "Initial {0} number can not be " 
-                                      "bigger than the final one.".format(string), 
+                                      "Initial {0} number can not be "
+                                      "smaller than 1, if it's not -1 .".format(string),
                                       title=_invalidInputStr)]
 
-        elif self.volumeNumber1 < -1:
+        if self.volNumber2.get() != -1 and self.volNumber2.get() < 1:
             return [self.errorMessage("Invalid {0} range\n"
-                                      "Initial {0} number can not be " 
-                                      "smaller than -1.".format(string), 
+                                      "Final {0} number can not be "
+                                      "smaller than 1, if it's not -1 .".format(string),
                                       title=_invalidInputStr)]
 
-        elif self.volumeNumber2 < -1:
+        if self.volumeNumber1+1 > self.volumeNumber2:
             return [self.errorMessage("Invalid {0} range\n"
-                                      "Final {0} number can not be " 
-                                      "smaller than -1.".format(string), 
+                                      "Initial {0} number can not be "
+                                      "bigger than the final one.".format(string),
                                       title=_invalidInputStr)]
 
-        if self.volumeNumber1 != -1:
-            try:
-                _ = items[self.volumeNumber1]
-            except IndexError:
-                return [self.errorMessage("Invalid initial {0} number {1}\n"
-                                         "Display the output {0}s to see "
-                                         "the availables ones.".format(string, self.volNumber1.get()+1),
-                                         title=_invalidInputStr)]
-            
-        if self.volumeNumber2 != -1:
-            try:
-                _ = items[self.volumeNumber2-1]
-            except IndexError:
-                return [self.errorMessage("Invalid final {0} number {1}\n"
-                                         "Display the output {0}s to see "
-                                         "the availables ones.".format(string, self.volNumber2.get()),
-                                         title=_invalidInputStr)]
+        try:
+            _ = items[self.volumeNumber1]
+        except IndexError:
+            return [self.errorMessage("Invalid initial {0} number {1}\n"
+                                      "Display the output {0}s to see "
+                                      "the availables ones.".format(string, self.volNumber1.get()+1),
+                                      title=_invalidInputStr)]
+
+        try:
+            _ = items[self.volumeNumber2-2]
+        except IndexError:
+            return [self.errorMessage("Invalid final {0} number {1}\n"
+                                      "Display the output {0}s to see "
+                                      "the availables ones.".format(string, self.volNumber2.get()),
+                                      title=_invalidInputStr)]
+
+        return True
