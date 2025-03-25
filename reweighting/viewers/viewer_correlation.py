@@ -85,10 +85,10 @@ class ReweightingCorrelationViewer(ProtocolViewer):
             self.matrix1 = np.subtract(self.matrix1, np.mean(self.matrix1, axis=0))
             self.matrix2 = np.subtract(self.matrix2, np.mean(self.matrix2, axis=0))
 
-        xmax = self.matrix1.max()
-        xmin = self.matrix1.min()
-        ymax = self.matrix2.max()
-        ymin = self.matrix2.min()
+        xmax = self.matrix1.max() + self.matrix1.std()/5
+        xmin = self.matrix1.min() - self.matrix1.std()/5
+        ymax = self.matrix2.max() + self.matrix2.std()/5
+        ymin = self.matrix2.min() - self.matrix2.std()/5
 
         x = self._checkNumbers(1)
         if x is not True:
