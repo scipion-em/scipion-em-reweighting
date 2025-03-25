@@ -115,7 +115,8 @@ class ReweightingCorrelationViewer(ProtocolViewer):
             plt.scatter(self.matrix1.flatten(), self.matrix2.flatten())
 
         if self.label.get():
-            plt.legend()
+            if self.colourRows.get():
+                plt.legend()
             corrcoeff = np.corrcoef(self.matrix1.flatten(), self.matrix2.flatten())[0,1]
             plt.title('%6.3f' % corrcoeff)
 
