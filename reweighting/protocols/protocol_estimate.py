@@ -116,6 +116,11 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
                       pointerClass='EMFile,SetOfParticles',
                       help='This can be the output from a distance calculation job')
         
+        form.addParam('useSubLL', params.BooleanParam, default=False,
+                      condition='infileImageDistanceData == USE_POINTER',
+                      label="Use mean-subtracted log likelihood",
+                      pointerClass='EMFile,SetOfParticles')
+
         form.addParam('chains', params.IntParam, default=4,
                       label="Number of MCMC chains",
                       help='Number of chains for Markov Chain Monte Carlo for posterior sampling')
@@ -177,14 +182,16 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
                 else:
                     if hasattr(distanceObject.getFirstItem(), '_xmipp_logLikelihood'):
                         imageDistances = np.array([particle._xmipp_logLikelihood.get() for particle in distanceObject])
-                        imageDistances = imageDistances.reshape((len(self.clusterSizes),-1))
-                        filename = self._getExtraPath('image_distances_{0}.npy'.format(i+1))
-                        np.save(filename, imageDistances)
                     elif hasattr(distanceObject.getFirstItem(), '_cryolike_logLikelihood'):
                         imageDistances = np.array([particle._cryolike_logLikelihood.get() for particle in distanceObject])
-                        imageDistances = imageDistances.reshape((len(self.clusterSizes),-1))
-                        filename = self._getExtraPath('image_distances_{0}.npy'.format(i+1))
-                        np.save(filename, imageDistances)
+
+                    imageDistances = imageDistances.reshape((len(self.clusterSizes),-1))
+
+                    if self.useSubLL:
+                        imageDistances = np.subtract(imageDistances, np.mean(imageDistances, axis=0))
+
+                    filename = self._getExtraPath('image_distances_{0}.npy'.format(i+1))
+                    np.save(filename, imageDistances)
 
                 infileimagedistance.append(filename)
             
