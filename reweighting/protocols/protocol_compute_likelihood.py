@@ -24,12 +24,16 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
+try:
+    from itertools import izip
+except ImportError:
+    izip = zip
 
 import numpy as np
 import os
 
 from pwem.protocols import ProtAnalysis3D
-from pwem.objects import Volume, SetOfParticles
+from pwem.objects import Volume, SetOfParticles, SetOfClasses3D
 
 from pyworkflow import VERSION_1_1
 from pyworkflow.object import Float
@@ -261,25 +265,69 @@ class ReweightingProtComputeLikelihood(ProtAnalysis3D):
         for j, ind in enumerate([item.getObjId() for item in inputParticles]):
             self.idmap[ind] = j
 
-        self.i=0
+        refsDict = {}
+        self.i=1
         if isinstance(self.inputRefs.get(), Volume):
             self.LLs[self.i] = np.load(os.path.join(self._getExtraPath(
-                'likelihood/template%d/log_likelihood/log_likelihood_integrated_fourier_stack_000000.npy') % self.i))
+                'likelihood/template%d/log_likelihood/log_likelihood_integrated_fourier_stack_000000.npy') % (self.i-1)))
             outputSet.copyItems(self.inputParticles.get(), updateItemCallback=self._processRow)
+            refsDict[self.i] = self.inputRefs.get()
             self.i += 1
         else:
-            for _ in self.inputRefs.get():
+            for item in self.inputRefs.get():
                 self.LLs[self.i] = np.load(os.path.join(self._getExtraPath(
-                    'likelihood/template%d/log_likelihood/log_likelihood_integrated_fourier_stack_000000.npy') % self.i))
+                    'likelihood/template%d/log_likelihood/log_likelihood_integrated_fourier_stack_000000.npy') % (self.i-1)))
                 outputSet.copyItems(self.inputParticles.get(), updateItemCallback=self._processRow)
+                refsDict[self.i] = item.clone()
                 self.i += 1
 
         self._defineOutputs(reprojections=outputSet)
         self._defineSourceRelation(self.inputParticles, outputSet)
 
         matrix = np.array([particle._cryolike_logLikelihood.get() for particle in outputSet])
-        matrix = matrix.reshape((self.i,-1))
+        matrix = matrix.reshape((self.i-1,-1))
         np.save(self._getExtraPath('matrix.npy'), matrix)
+
+        classIds = np.argmax(matrix, axis=0)+1
+
+        clsSet = SetOfClasses3D.create(self._getExtraPath())
+        clsSet.setImages(inputParticles)
+
+        clsDict = {}  # Dictionary to store the (classId, classSet) pairs
+
+        cls_prev = 1
+        rep = refsDict[cls_prev]
+        for img, ref in izip(inputParticles, classIds):
+            if ref != cls_prev:
+                cls_prev = ref
+                rep = refsDict[cls_prev]
+
+            if ref not in clsDict:
+                classItem = clsSet.ITEM_TYPE.create(self._getExtraPath(), suffix=ref+1)
+                classItem.setRepresentative(rep)
+                clsDict[ref] = classItem
+                clsSet.append(classItem)
+            else:
+                classItem = clsDict[ref]
+
+            classItem.append(img)
+
+        for ref, rep in refsDict.items():
+            if rep.getFileName() not in [class3d.getRepresentative().getFileName()
+                              for class3d in clsDict.values()]:
+                classItem = clsSet.ITEM_TYPE.create(self._getExtraPath(), suffix=ref+1)
+                classItem.setRepresentative(rep)
+                clsDict[ref] = classItem
+                clsSet.append(classItem)
+
+        for classItem in clsDict.values():
+            clsSet.update(classItem)
+
+        clsSet.write()
+
+        self._defineOutputs(outputClasses=clsSet)
+        self._defineSourceRelation(self.inputParticles, clsSet)
+        self._defineSourceRelation(self.inputRefs, clsSet)
 
     def _processRow(self, particle, row):
         setattr(particle, '_cryolike_logLikelihood', 
