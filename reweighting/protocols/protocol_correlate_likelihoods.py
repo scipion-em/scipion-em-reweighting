@@ -91,7 +91,7 @@ class ReweightingCorrelateProtocol(EMProtocol):
         if self.flipVols.get():
             matrix2 = np.flip(matrix2, axis=0)
 
-        corrcoeffs = np.abs(np.corrcoef(matrix1.flatten(), matrix2.flatten()))[0, 1]
+        corrcoeffs = np.corrcoef(matrix1.flatten(), matrix2.flatten())[0, 1]
         np.savetxt(self.getCorrCoeffPath(), np.array(corrcoeffs).reshape(-1), fmt='%5.3f')
 
     def createOutputStep(self):
