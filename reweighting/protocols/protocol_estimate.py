@@ -74,7 +74,7 @@ class ReweightingEstimateWeightsProtocol(EMProtocol):
         form.addParam('clusterSizePointer', params.PointerParam, 
                       label="Cluster size object",
                       condition='infileClusterSizeData == USE_POINTER',
-                      pointerClass='SetOfAtomStructs,SetOfTrajFrames,SetOfVolumes,SetOfClassesTraj',
+                      pointerClass='SetOfAtomStructs,SetOfVolumes',
                       help='The input structures can be any set that contains sizes')
         
         form.addParam('infileImageDistanceData', params.EnumParam, choices=['file', 'pointer'],
