@@ -117,7 +117,7 @@ class Plugin(pwem.Plugin):
             if not os.path.exists(clonePath):
                 installationCmd += "git clone -b master https://github.com/KinglittleQ/torch-batch-svd.git torch-batch-svd && "
             installationCmd += "cd torch-batch-svd && "
-            installationCmd += "pip install -Ue . && cd .. && "
+            installationCmd += "pip install -e . --no-build-isolation && cd .. && "
 
             installationCmd += "touch reweighting_torch_svd_installed"
             return installationCmd
