@@ -49,8 +49,157 @@ import reweighting
 from reweighting.constants import REWEIGHTING_SCRIPTS
 
 class ReweightingProtComputeLikelihood(ProtAnalysis3D):
-    """This protocol computes the likelihood of a set of particles with assigned angles when compared to a
-       set of maps or atomic models using CryoLike"""
+    """
+    Computes the likelihood of a set of particles with assigned projection
+    angles against one or more reference maps or atomic models using
+    CryoLike.
+
+    AI Generated:
+
+    Compute Likelihood (ReweightingProtComputeLikelihood) — User Manual
+        Overview
+
+        This protocol evaluates how well a set of experimental particle
+        images agrees with one or more structural references by computing
+        likelihood scores in Fourier space. Its main objective is to
+        quantify, for each particle, the statistical compatibility between
+        the observed image and a collection of reference projections
+        generated from maps or atomic structures.
+
+        In cryo-EM workflows, this type of likelihood estimation is
+        especially useful when particles already carry assigned projection
+        orientations and the user wishes to compare how strongly different
+        structural hypotheses explain the experimental data. Typical
+        applications include reweighting heterogeneous datasets, assigning
+        particles to competing structural states, or evaluating how well
+        candidate references capture conformational variability.
+
+        Inputs and General Workflow
+
+        The protocol requires a set of aligned particles and one or more
+        structural references. The particle images must already contain
+        projection alignment information, since the likelihood calculation
+        relies on known viewing geometry.
+
+        During execution, the protocol first converts the input particles
+        into the internal format expected by CryoLike. Particle metadata,
+        Fourier-transformed particle images, and acquisition parameters
+        such as pixel size and box dimensions are prepared for downstream
+        computation.
+
+        Each reference is then processed independently. For every map or
+        atomic model, CryoLike generates reprojection templates in Fourier
+        space covering a sampled set of orientations and in-plane
+        rotations. These templates form the reference ensemble against
+        which the experimental particles are evaluated.
+
+        Sampling of Orientation and Image Displacements
+
+        The protocol samples projection space using two complementary
+        components.
+
+        The first component is angular sampling. A viewing distance
+        controls how densely orientations are distributed on the sphere,
+        while the number of in-plane rotations defines rotational sampling
+        around each projection direction.
+
+        The second component is translational sampling. The protocol
+        explores possible image shifts by defining a maximum displacement
+        in pixels and subdividing that range into a grid of X and Y
+        displacements.
+
+        From a practical cryo-EM perspective, broader sampling increases
+        robustness when alignment uncertainty is high, whereas narrower
+        sampling can significantly reduce computational cost when
+        orientations are already well refined.
+
+        Likelihood Computation
+
+        Once particles and templates are prepared, CryoLike computes
+        integrated log-likelihood values for every particle-reference
+        combination.
+
+        These values represent how well each reference explains each
+        experimental particle after integrating over sampled orientations,
+        in-plane rotations, and translational displacements. The resulting
+        likelihoods provide a quantitative basis for comparing multiple
+        structural hypotheses.
+
+        When several references are supplied, the protocol evaluates all
+        of them independently and stores the likelihood values in a
+        particle-by-reference matrix. This matrix can later be used for
+        downstream statistical analysis, classification refinement, or
+        likelihood-based particle reweighting.
+
+        CPU and GPU Execution
+
+        The protocol supports both CPU and GPU execution.
+
+        On CPU systems, parallel execution is controlled by Scipion-level
+        parallelization together with the number of threads used internally
+        by CryoLike. Since several CryoLike calls may run simultaneously,
+        the effective resource usage depends on both levels of
+        parallelization.
+
+        On GPU systems, the protocol can distribute CryoLike execution
+        across selected CUDA devices. This can substantially accelerate
+        template generation and likelihood computation, especially when
+        processing large particle datasets or multiple references.
+
+        In practice, memory availability becomes an important limiting
+        factor because particle batches, Fourier templates, and likelihood
+        arrays may all need to reside in memory at the same time.
+
+        Outputs and Interpretation
+
+        The protocol produces an output particle set in which every
+        particle carries a CryoLike log-likelihood value.
+
+        When multiple references are provided, the protocol also compiles
+        a likelihood matrix whose rows correspond to references and whose
+        columns correspond to particles. This matrix provides a compact
+        quantitative summary of the agreement between experimental data
+        and structural hypotheses.
+
+        Based on the maximum likelihood value for each particle, the
+        protocol automatically creates a 3D classification output. Each
+        particle is assigned to the reference that best explains it.
+
+        Biologically, this output can be interpreted as a likelihood-based
+        partitioning of particles among alternative structural states,
+        making it particularly useful for heterogeneous systems,
+        conformational landscapes, or competing atomic models.
+
+        Practical Considerations
+
+        The biological meaning of the likelihood values depends strongly
+        on the quality and relevance of the references. Closely related
+        references may produce subtle likelihood differences, whereas
+        highly distinct structures often lead to clearer separation.
+
+        The quality of the assigned particle orientations also strongly
+        influences reliability. If projection parameters are poor, the
+        likelihood scores may become less discriminative or biologically
+        ambiguous.
+
+        For exploratory analyses, moderate angular and translational
+        sampling often provides a good balance between runtime and
+        robustness. For publication-level analyses or difficult
+        heterogeneous datasets, denser sampling may improve reliability at
+        the cost of substantially increased computation.
+
+        Final Perspective
+
+        This protocol turns a set of already aligned particle images into
+        a quantitative comparison against one or more structural
+        references.
+
+        Rather than performing reconstruction directly, it measures how
+        strongly each particle supports competing structural models. In
+        cryo-EM reweighting and heterogeneity analysis, this provides a
+        statistically meaningful bridge between experimental images and
+        structural interpretation.
+    """
 
     _label = 'compute likelihood'
     _lastUpdateVersion = VERSION_1_1
