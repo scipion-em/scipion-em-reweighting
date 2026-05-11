@@ -40,7 +40,123 @@ from pyworkflow.object import Float
 
 class ReweightingCorrelateProtocol(EMProtocol):
     """
-    This protocol will calculate correlations between log likelihood matrices
+    Calculates the correlation between two log-likelihood matrices derived
+    from independent particle likelihood analyses.
+
+    AI Generated:
+
+    Correlate Log Likelihoods (ReweightingCorrelateProtocol) — User Manual
+        Overview
+
+        This protocol compares two likelihood analyses by measuring how
+        similar their log-likelihood matrices are. Its purpose is to
+        provide a compact quantitative estimate of agreement between two
+        independent particle-to-reference likelihood calculations.
+
+        In cryo-EM workflows, likelihood matrices often summarize how
+        strongly each particle supports a collection of structural
+        hypotheses. Comparing such matrices can be useful when evaluating
+        reproducibility across runs, comparing alternative processing
+        strategies, or testing whether different reference sets lead to
+        consistent particle behavior.
+
+        Inputs and General Workflow
+
+        The protocol requires two particle sets that originate from
+        previous likelihood-based analyses. Each input must contain
+        log-likelihood information produced by compatible upstream
+        protocols.
+
+        Rather than recomputing likelihoods, this protocol retrieves the
+        likelihood matrices already stored by the previous computations.
+        These matrices are then loaded and transformed into a common form
+        for comparison.
+
+        Each matrix is interpreted as a particle-by-reference numerical
+        representation of the statistical agreement between experimental
+        particles and structural models. The goal is not to compare
+        particles directly in image space, but rather to compare the
+        statistical structure of the two likelihood landscapes.
+
+        Mean Subtraction and Contrast Normalization
+
+        An optional normalization step subtracts the mean value of each
+        column of the likelihood matrix.
+
+        This operation reduces the influence of global offsets and
+        emphasizes relative differences across particles. In practical
+        terms, it often improves interpretability by highlighting
+        contrast rather than absolute likelihood scale.
+
+        This can be especially useful when two independent analyses were
+        performed under slightly different numerical conditions but still
+        preserve similar relative likelihood patterns.
+
+        Volume Order Reversal
+
+        The protocol also offers the possibility of reversing the order
+        of the reference dimension in the second matrix.
+
+        This is useful when two likelihood calculations contain the same
+        references but stored in opposite order. In such cases, flipping
+        the matrix prevents an artificial loss of correlation caused only
+        by mismatched indexing rather than genuine structural differences.
+
+        Correlation Computation
+
+        Once the two matrices have been optionally normalized and
+        reordered, they are flattened into one-dimensional arrays.
+
+        The protocol then computes a Pearson correlation coefficient
+        between the two flattened likelihood distributions. This single
+        number summarizes how strongly both likelihood matrices agree.
+
+        A value close to one indicates that both analyses preserve a very
+        similar likelihood structure across particles and references. A
+        value near zero suggests weak correspondence, while negative
+        values indicate opposing likelihood patterns.
+
+        Outputs and Interpretation
+
+        The protocol produces a numerical output containing the computed
+        correlation coefficient.
+
+        Biologically, this value can be interpreted as a global measure
+        of consistency between two likelihood-based structural analyses.
+        It does not directly indicate whether one analysis is better than
+        another, but rather how similarly both analyses organize the
+        particle population with respect to their reference models.
+
+        This can be particularly informative when comparing alternative
+        reconstruction strategies, evaluating reproducibility across
+        independent processing branches, or assessing whether distinct
+        reference ensembles capture comparable structural variation.
+
+        Practical Considerations
+
+        The interpretation of the correlation depends strongly on the
+        compatibility of the two inputs. The particle sets should
+        represent the same experimental population, and the likelihood
+        matrices should arise from comparable structural hypotheses.
+
+        Large differences in reference definitions, preprocessing
+        strategies, or particle subsets may reduce correlation even when
+        both analyses are individually valid.
+
+        When correlation is unexpectedly low, it is often useful to check
+        whether reference ordering differs or whether global likelihood
+        offsets obscure the relative signal.
+
+        Final Perspective
+
+        This protocol provides a simple but informative way to compare
+        two likelihood analyses at the level of statistical structure.
+
+        Instead of comparing reconstructions directly, it evaluates
+        whether two analyses produce similar particle-to-model
+        relationships. In cryo-EM heterogeneity studies, this offers a
+        compact measure of reproducibility, consistency, and structural
+        agreement across independent computational workflows.
     """
     _label = 'Correlate log likelihoods'
 
